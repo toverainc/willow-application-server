@@ -8,4 +8,4 @@ FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-127.0.0.1}
 
 set +a
 
-streamlit run main.py
+streamlit run ui.py

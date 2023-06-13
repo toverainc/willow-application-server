@@ -22,8 +22,11 @@ IMAGE=${IMAGE:-willow-application-server}
 # HTTPS Listen port
 LISTEN_PORT_HTTPS=${LISTEN_PORT_HTTPS:-19000}
 
-# Listen port
-LISTEN_PORT=${LISTEN_PORT:-8501}
+# UI Listen port
+UI_LISTEN_PORT=${UI_LISTEN_PORT:-8501}
+
+# API Listen Port
+API_LISTEN_PORT=${API_LISTEN_PORT:-8502}
 
 # Log level - acceptable values are debug, info, warning, error, critical. Suggest info or debug.
 LOG_LEVEL=${LOG_LEVEL:-debug}

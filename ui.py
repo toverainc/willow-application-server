@@ -1,5 +1,18 @@
 import streamlit as st
 import json
+import requests
+from websockets.sync.client import connect
+
+def push_config(json):
+    with connect("ws://api:8502/ws") as websocket:
+        websocket.send(json)
+        #message = websocket.recv()
+        #message_string = str(message)
+        #print(f"Received: {message_string}")
+        websocket.close()
+
+def post_config(json):
+    requests.post("http://api:8502/config", json = json)
 
 title = "Willow Application Server"
 
@@ -61,6 +74,7 @@ if config["ntp_config"] == "Host":
 submitted = st.button("Save")
 if submitted:
     json_object = json.dumps(config, indent=2)
+    push_config(json_object)
     with open("user_config.json", "w") as config_file:
         config_file.write(json_object)
     st.write(f"Configuration Saved:")
