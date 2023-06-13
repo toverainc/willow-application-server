@@ -1,18 +1,18 @@
 {
-  "wifi_ssid": "myssid",
-  "wifi_password": "mypassword",
-  "speech_rec_mode": "WIS",
-  "response_type": "None",
-  "wis_url": "https://infer.tovera.io/api/willow",
-  "wake_word": "Hi ESP",
   "command_endpoint": "Home Assistant",
   "hass_host": "homeassistant.local",
   "hass_port": 8123,
   "hass_tls": false,
   "hass_token": "your_ha_token",
-  "timezone": "UTC+5",
-  "speaker_volume": 60,
   "lcd_brightness": 700,
   "ntp_config": "Host",
-  "ntp_host": "pool.ntp.org"
+  "ntp_host": "pool.ntp.org",
+  "response_type": "None",
+  "speaker_volume": 60,
+  "speech_rec_mode": "WIS",
+  "timezone": "UTC+5",
+  "wake_word": "Hi ESP",
+  "wifi_password": "mypassword",
+  "wifi_ssid": "myssid",
+  "wis_url": "https://infer.tovera.io/api/willow"
 }
