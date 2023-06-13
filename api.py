@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from logging import getLogger
 
@@ -38,8 +39,9 @@ def read_root():
 @app.post("/config")
 async def post_config(request: Request):
     data = await request.json()
-    log.info(str(data))
-    await connmgr.broadcast(websocket, data)
+    msg = json.dumps({'config': json.loads(data)})
+    log.info(str(msg))
+    await connmgr.broadcast(websocket, msg)
     return "Success"
 
 @app.websocket_route("/ws")
