@@ -39,7 +39,7 @@ def read_root():
 @app.post("/config")
 async def post_config(request: Request):
     data = await request.json()
-    msg = json.dumps({'config': json.loads(data)})
+    msg = json.dumps({'config': json.loads(data)}, sort_keys=True)
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)
     return "Success"
