@@ -74,7 +74,7 @@ if config["ntp_config"] == "Host":
 submitted = st.button("Save")
 if submitted:
     json_object = json.dumps(config, indent=2)
-    push_config(json_object)
+    post_config(json_object)
     with open("user_config.json", "w") as config_file:
         config_file.write(json_object)
     st.write(f"Configuration Saved:")
