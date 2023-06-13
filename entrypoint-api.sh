@@ -8,4 +8,4 @@ FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-127.0.0.1}
 
 set +a
 
-uvicorn api:app --reload --host 0.0.0.0 --port 8502
+uvicorn api:app --reload --host 0.0.0.0 --port 8502 --log-level "$LOG_LEVEL"
