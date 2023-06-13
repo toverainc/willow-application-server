@@ -14,5 +14,6 @@
   "wake_word": "Hi ESP",
   "wifi_password": "mypassword",
   "wifi_ssid": "myssid",
+  "wis_tts_url": "https://infer.tovera.io/api/tts",
   "wis_url": "https://infer.tovera.io/api/willow"
 }
