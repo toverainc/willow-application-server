@@ -1,0 +1,13 @@
+services:
+  was:
+    restart: unless-stopped
+    image: ${IMAGE}:${TAG}
+    env_file:
+      - .env
+    #build:
+    #  dockerfile: Dockerfile
+    ports:
+      - ${LISTEN_IP}:${LISTEN_PORT}:8501
+    volumes:
+      - ./:/app
+    command: ./entrypoint.sh
