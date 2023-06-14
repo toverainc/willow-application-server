@@ -32,6 +32,17 @@ class ConnMgr:
 connmgr = ConnMgr()
 
 
+def get_config():
+    config = None
+    try:
+        with open("user_config.json", "r") as config_file:
+            config = config_file.read()
+    except Exception as e:
+        log.error(f"failed to get config: {e}")
+    finally:
+        config_file.close()
+        return config
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
