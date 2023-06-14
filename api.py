@@ -1,5 +1,6 @@
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, WebSocketException, Request
+from fastapi.responses import JSONResponse
 from logging import getLogger
 from websockets.exceptions import ConnectionClosed
 
@@ -55,9 +56,21 @@ def get_config():
 def read_root():
     return {"Hello": "World"}
 
+@app.get("/config")
+async def get_config():
+    try:
+        with open("user_config.json", "r") as config_file:
+            user_config = json.load(config_file)
+    except:
+        user_config = {}
+
+    return JSONResponse(content=user_config)
+
 @app.post("/config")
 async def post_config(request: Request):
     data = await request.json()
+    with open("user_config.json", "w") as config_file:
+        config_file.write(data)
     msg = build_config_msg(data)
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)

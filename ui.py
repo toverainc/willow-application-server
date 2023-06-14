@@ -1,31 +1,28 @@
 import streamlit as st
 import json
 import requests
-from websockets.sync.client import connect
 
-def push_config(json):
-    with connect("ws://api:8502/ws") as websocket:
-        websocket.send(json)
-        #message = websocket.recv()
-        #message_string = str(message)
-        #print(f"Received: {message_string}")
-        websocket.close()
+was_api_config = "http://api:8502/config"
 
 def post_config(json):
-    requests.post("http://api:8502/config", json = json)
+    requests.post(was_api_config, json = json)
+
+def get_config():
+    response = requests.get(was_api_config)
+    json = response.json()
+    return json
+
+def merge_dict(dict_1, dict_2):
+	result = dict_1 | dict_2
+	return result
 
 title = "Willow Application Server"
 
 st.set_page_config(page_title=title, layout = 'centered', initial_sidebar_state = 'auto')
 st.title(title)
 
-def merge_dict(dict_1, dict_2):
-	result = dict_1 | dict_2
-	return result
-
-try: 
-    with open("user_config.json", "r") as config_file:
-        user_config = json.load(config_file)
+try:
+    user_config = get_config()
 except:
     user_config = {}
 
@@ -87,11 +84,9 @@ if config["ntp_config"] == "Host":
     config["ntp_host"] = st.text_input("NTP Host",value=config["ntp_host"])
 
 # Form submit button
-submitted = st.button("Save")
+submitted = st.button("Save and Apply")
 if submitted:
     json_object = json.dumps(config, indent=2)
     post_config(json_object)
-    with open("user_config.json", "w") as config_file:
-        config_file.write(json_object)
     st.write(f"Configuration Saved:")
     st.json(config)
