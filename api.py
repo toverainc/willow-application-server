@@ -69,6 +69,11 @@ async def websocket_endpoint(websocket: websocket):
         while True:
             data = await websocket.receive_text()
             log.info(str(data))
-            await connmgr.broadcast(websocket, data)
+            msg = json.loads(data)
+            if "cmd" in msg:
+                if msg["cmd"] == "get_config":
+                    await websocket.send_text(build_config_msg(get_config()))
+            else:
+                await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
         connmgr.disconnect(websocket)
