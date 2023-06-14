@@ -1,6 +1,7 @@
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from logging import getLogger
+from websockets.exceptions import ConnectionClosed
 
 app = FastAPI()
 log = getLogger("WAS")
@@ -76,4 +77,6 @@ async def websocket_endpoint(websocket: websocket):
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
+        connmgr.disconnect(websocket)
+    except ConnectionClosed:
         connmgr.disconnect(websocket)
