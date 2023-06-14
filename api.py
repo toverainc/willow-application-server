@@ -41,7 +41,7 @@ def build_config_msg(config):
     except Exception as e:
         log.error(f"failed to build config message: {e}")
 
-def get_config():
+def get_config_ws():
     config = None
     try:
         with open("user_config.json", "r") as config_file:
@@ -86,7 +86,7 @@ async def websocket_endpoint(websocket: websocket):
             msg = json.loads(data)
             if "cmd" in msg:
                 if msg["cmd"] == "get_config":
-                    await websocket.send_text(build_config_msg(get_config()))
+                    await websocket.send_text(build_config_msg(get_config_ws()))
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
