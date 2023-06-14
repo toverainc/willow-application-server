@@ -56,7 +56,7 @@ def get_config_ws():
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/config")
+@app.get("/api/config")
 async def get_config():
     try:
         with open("user_config.json", "r") as config_file:
@@ -66,7 +66,7 @@ async def get_config():
 
     return JSONResponse(content=user_config)
 
-@app.post("/config")
+@app.post("/api/config")
 async def post_config(request: Request):
     data = await request.json()
     with open("user_config.json", "w") as config_file:

@@ -7,7 +7,7 @@
   "lcd_brightness": 700,
   "ntp_config": "Host",
   "ntp_host": "pool.ntp.org",
-  "response_type": "None",
+  "audio_response_type": "None",
   "speaker_volume": 60,
   "speech_rec_mode": "WIS",
   "timezone": "UTC+5",

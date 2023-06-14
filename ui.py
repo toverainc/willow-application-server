@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import requests
 
-was_api_config = "http://api:8502/config"
+was_api_config = "http://api:8502/api/config"
 
 def post_config(json):
     requests.post(was_api_config, json = json)
@@ -45,12 +45,12 @@ config["speech_rec_mode"] = st.selectbox(
 if config["speech_rec_mode"] == "WIS":
     config["wis_url"] = st.text_input("Willow Inference Server URL", value=config["wis_url"])
 
-response_type_values = ('None', 'Chimes', 'TTS')
-config["response_type"] = st.selectbox(
+audio_response_type_values = ('None', 'Chimes', 'TTS')
+config["audio_response_type"] = st.selectbox(
     "Willow audio response type",
-    response_type_values, response_type_values.index(config["response_type"]))
+    audio_response_type_values, audio_response_type_values.index(config["audio_response_type"]))
 
-if config["response_type"] == "TTS":
+if config["audio_response_type"] == "TTS":
     config["wis_tts_url"] = st.text_input("Willow Inference Server TTS URL", value=config["wis_tts_url"])
 
 wake_word_values = ('Hi ESP', 'Alexa', 'Hi Lexin')
