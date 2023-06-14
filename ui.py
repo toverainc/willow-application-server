@@ -69,6 +69,24 @@ if config["command_endpoint"] == "Home Assistant":
     config["hass_tls"] = st.checkbox('Home Assistant use TLS', value=config["hass_tls"])
     config["hass_token"] = st.text_input("Home Assistant Token", value=config["hass_token"])
 
+if config["command_endpoint"] == "openHAB":
+    config["openhab_url"] = st.text_input("openHAB URL", value=config["openhab_url"])
+    config["openhab_token"] = st.text_input("openHAB Token", value=config["openhab_token"])
+
+if config["command_endpoint"] == "REST":
+    config["rest_url"] = st.text_input("REST URL", value=config["rest_url"])
+
+    rest_auth_type_values = ('None', 'Basic', 'Header')
+    config["rest_auth_type"] = st.selectbox(
+    "REST Authentication Method",
+    rest_auth_type_values, rest_auth_type_values.index(config["rest_auth_type"]))
+
+    if config["rest_auth_type"] == "Basic":
+        config["rest_auth_user"] = st.text_input("REST Basic Username", value=config["rest_auth_user"])
+        config["rest_auth_pass"] = st.text_input("REST Basic Password", value=config["rest_auth_pass"])
+    elif config["rest_auth_type"] == "Header":
+        config["rest_auth_header"] = st.text_input("REST Authentication Header", value=config["rest_auth_header"])
+
 config["timezone"] = st.text_input("Timezone",value=config["timezone"])
 
 config["speaker_volume"] = st.slider('Speaker Volume', 0, 100, value=config["speaker_volume"])
