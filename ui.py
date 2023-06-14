@@ -19,12 +19,23 @@ title = "Willow Application Server"
 st.set_page_config(page_title=title, layout = 'centered', initial_sidebar_state = 'auto')
 st.title(title)
 
+def merge_dict(dict_1, dict_2):
+	result = dict_1 | dict_2
+	return result
+
 try: 
     with open("user_config.json", "r") as config_file:
-        config = json.load(config_file)
+        user_config = json.load(config_file)
 except:
+    user_config = {}
+
+try:
     with open("default_config.json", "r") as config_file:
-        config = json.load(config_file)
+        default_config = json.load(config_file)
+except:
+    default_config = {}
+
+config = merge_dict(default_config, user_config)
 
 config["wifi_ssid"] = st.text_input("WiFi SSID", value=config["wifi_ssid"])
 config["wifi_password"] = st.text_input("WiFi Password", value=config["wifi_password"])
