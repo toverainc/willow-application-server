@@ -32,6 +32,13 @@ class ConnMgr:
 connmgr = ConnMgr()
 
 
+def build_config_msg(config):
+    try:
+        msg = json.dumps({'config': json.loads(config)}, sort_keys=True)
+        return msg
+    except Exception as e:
+        log.error(f"failed to build config message: {e}")
+
 def get_config():
     config = None
     try:
@@ -50,7 +57,7 @@ def read_root():
 @app.post("/config")
 async def post_config(request: Request):
     data = await request.json()
-    msg = json.dumps({'config': json.loads(data)}, sort_keys=True)
+    msg = build_config_msg(data)
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)
     return "Success"
