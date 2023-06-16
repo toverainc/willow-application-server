@@ -63,6 +63,14 @@ def get_config_ws():
 def read_root():
     return {"Hello": "World"}
 
+@app.get("/api/clients")
+async def get_clients():
+    clients = []
+    for client in connmgr.connected_clients:
+        clients.append(client.ua)
+
+    return JSONResponse(content=clients)
+
 @app.get("/api/config")
 async def get_config():
     try:
