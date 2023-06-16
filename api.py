@@ -12,8 +12,12 @@ websocket = WebSocket
 
 class Client:
     def __init__(self, ua, ws):
+        self.hostname = ""
         self.ua = ua
         self.ws = ws
+
+    def set_hostname(self, hostname):
+        self.hostname = hostname
 
 
 class ConnMgr:
@@ -36,6 +40,9 @@ class ConnMgr:
 
     def disconnect(self, client: Client):
         self.connected_clients.remove(client)
+
+    def update_client(self, old, new):
+        self.connected_clients = [new if client == old else client for client in self.connected_clients]
 
 
 connmgr = ConnMgr()
@@ -67,7 +74,7 @@ def read_root():
 async def get_clients():
     clients = []
     for client in connmgr.connected_clients:
-        clients.append(client.ua)
+        clients.append(json.dumps({'hostname': client.hostname, 'user_agent': client.ua}))
 
     return JSONResponse(content=clients)
 
@@ -113,7 +120,11 @@ async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | N
             if "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_config_msg(get_config_ws()))
-
+            elif "hello" in msg:
+                hostname = msg['hello']['hostname']
+                new_client = Client(user_agent, websocket)
+                new_client.set_hostname(hostname)
+                connmgr.update_client(client, new_client)
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
