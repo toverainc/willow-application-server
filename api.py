@@ -83,6 +83,15 @@ async def post_config(request: Request):
     await connmgr.broadcast(websocket, msg)
     return "Success"
 
+@app.post("/api/ota")
+async def post_ota():
+    msg = json.dumps({'cmd':'ota_start'})
+    for client in connmgr.connected_clients:
+        try:
+            await client.ws.send_text(msg)
+        except Exception as e:
+            log.error("failed to trigger OTA")
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
     client = Client(user_agent, websocket)
