@@ -1,6 +1,7 @@
 import json
 from fastapi import FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from logging import getLogger
 from typing import Annotated
 from websockets.exceptions import ConnectionClosed
@@ -38,6 +39,7 @@ class ConnMgr:
         self.connected_clients.remove(client)
 
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 connmgr = ConnMgr()
 
 
