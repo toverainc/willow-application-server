@@ -3,6 +3,7 @@ from fastapi import FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketEx
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
+from os import environ as env
 from typing import Annotated
 from websockets.exceptions import ConnectionClosed
 
@@ -95,7 +96,7 @@ async def post_config(request: Request):
 
 @app.post("/api/ota")
 async def post_ota():
-    msg = json.dumps({'cmd':'ota_start'})
+    msg = json.dumps({'cmd':'ota_start', 'ota_url': env['OTA_URL']})
     for client in connmgr.connected_clients:
         try:
             await client.ws.send_text(msg)
