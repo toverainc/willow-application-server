@@ -14,7 +14,11 @@ websocket = WebSocket
 
 class Client:
     def __init__(self, ua):
+        self.hostname = "unknown"
         self.ua = ua
+
+    def set_hostname(self, hostname):
+        self.hostname = hostname
 
 
 class ConnMgr:
@@ -37,6 +41,10 @@ class ConnMgr:
 
     def disconnect(self, ws: WebSocket):
         self.connected_clients.pop(ws)
+
+    def update_client(self, ws, key, value):
+        if key == "hostname":
+            self.connected_clients[ws].set_hostname(value)
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -69,7 +77,7 @@ def read_root():
 async def get_clients():
     clients = []
     for _, client in connmgr.connected_clients.items():
-        clients.append(client.ua)
+        clients.append({'hostname': client.hostname, 'user_agent': client.ua})
 
     return JSONResponse(content=clients)
 
@@ -115,6 +123,10 @@ async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | N
             if "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_config_msg(get_config_ws()))
+
+            elif "hello" in msg:
+                if "hostname" in msg["hello"]:
+                    connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
 
             else:
                 await connmgr.broadcast(websocket, data)
