@@ -16,7 +16,7 @@ def merge_dict(dict_1, dict_2):
 	result = dict_1 | dict_2
 	return result
 
-title = "Willow Application Server"
+title = "Willow Application Server - Configuration"
 
 st.set_page_config(page_title=title, layout = 'centered', initial_sidebar_state = 'auto')
 st.title(title)
