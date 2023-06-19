@@ -76,8 +76,8 @@ def read_root():
 @app.get("/api/clients")
 async def get_clients():
     clients = []
-    for _, client in connmgr.connected_clients.items():
-        clients.append({'hostname': client.hostname, 'user_agent': client.ua})
+    for ws, client in connmgr.connected_clients.items():
+        clients.append({'hostname': client.hostname, 'ip': ws.client.host, 'port': ws.client.port, 'user_agent': client.ua})
 
     return JSONResponse(content=clients)
 
