@@ -1,10 +1,10 @@
 import json
-from fastapi import FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
+from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
 from os import environ as env
-from typing import Annotated
+from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 
 app = FastAPI()
@@ -41,6 +41,11 @@ class ConnMgr:
 
     def disconnect(self, ws: WebSocket):
         self.connected_clients.pop(ws)
+
+    def get_client_by_hostname(self, hostname):
+        for k, v in self.connected_clients.items():
+            if v.hostname == hostname:
+                return k
 
     def update_client(self, ws, key, value):
         if key == "hostname":
@@ -102,13 +107,14 @@ async def post_config(request: Request):
     return "Success"
 
 @app.post("/api/ota")
-async def post_ota():
+async def post_ota(body: Dict = Body(...)):
+    log.error(f"body: {body} {type(body)}")
     msg = json.dumps({'cmd':'ota_start', 'ota_url': env['OTA_URL']})
-    for client in connmgr.connected_clients:
-        try:
-            await client.send_text(msg)
-        except Exception as e:
-            log.error("failed to trigger OTA")
+    try:
+        ws = connmgr.get_client_by_hostname(body["hostname"])
+        await ws.send_text(msg)
+    except Exception as e:
+        log.error("failed to trigger OTA")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
