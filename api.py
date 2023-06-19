@@ -13,31 +13,30 @@ websocket = WebSocket
 
 
 class Client:
-    def __init__(self, ua, ws):
+    def __init__(self, ua):
         self.ua = ua
-        self.ws = ws
 
 
 class ConnMgr:
     def __init__(self):
-        self.connected_clients: list[Client] = []
+        self.connected_clients: Dict[WebSocket, Client] = {}
 
-    async def accept(self, client: Client):
+    async def accept(self, ws: WebSocket, client: Client):
         try:
-            await client.ws.accept()
-            self.connected_clients.append(client)
+            await ws.accept()
+            self.connected_clients[ws] = client
         except WebSocketException as e:
             log.error(f"failed to accept websocket connection: {e}")
 
     async def broadcast(self, ws: websocket, msg: str):
         for client in self.connected_clients:
             try:
-                await client.ws.send_text(msg)
+                await client.send_text(msg)
             except WebSocketException as e:
                 log.error(f"failed to broadcast message: {e}")
 
-    def disconnect(self, client: Client):
-        self.connected_clients.remove(client)
+    def disconnect(self, ws: WebSocket):
+        self.connected_clients.pop(ws)
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -69,7 +68,7 @@ def read_root():
 @app.get("/api/clients")
 async def get_clients():
     clients = []
-    for client in connmgr.connected_clients:
+    for _, client in connmgr.connected_clients.items():
         clients.append(client.ua)
 
     return JSONResponse(content=clients)
@@ -99,15 +98,15 @@ async def post_ota():
     msg = json.dumps({'cmd':'ota_start', 'ota_url': env['OTA_URL']})
     for client in connmgr.connected_clients:
         try:
-            await client.ws.send_text(msg)
+            await client.send_text(msg)
         except Exception as e:
             log.error("failed to trigger OTA")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
-    client = Client(user_agent, websocket)
+    client = Client(user_agent)
 
-    await connmgr.accept(client)
+    await connmgr.accept(websocket, client)
     try:
         while True:
             data = await websocket.receive_text()
@@ -120,6 +119,6 @@ async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | N
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
-        connmgr.disconnect(client)
+        connmgr.disconnect(websocket)
     except ConnectionClosed:
-        connmgr.disconnect(client)
+        connmgr.disconnect(websocket)
