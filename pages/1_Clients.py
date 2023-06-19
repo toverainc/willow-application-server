@@ -12,15 +12,15 @@ st.set_page_config(page_title=title, layout = 'centered', initial_sidebar_state 
 st.title(title)
 
 devices = get_devices()
-cols = st.columns(len(devices[0]) + 1)
-fields = list(devices[0])
+cols = st.columns(5)
+fields = ["Hostname", "IP", "Port", "User Agent", "Actions"]
 
 for col, field in zip(cols, fields):
     col.write(f"**{field}**")
 
 
 for idx, row in enumerate(devices):
-    hostname, ip, port, user_agent, actions = st.columns(len(devices[0]) + 1)
+    hostname, ip, port, user_agent, actions = st.columns(5)
     hostname.write(row['hostname'])
     ip.write(row['ip'])
     port.write(row['port'])
