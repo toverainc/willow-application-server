@@ -34,9 +34,6 @@ except:
 
 config = merge_dict(default_config, user_config)
 
-config["wifi_ssid"] = st.text_input("WiFi SSID", value=config["wifi_ssid"])
-config["wifi_password"] = st.text_input("WiFi Password", value=config["wifi_password"])
-
 speech_rec_mode_values = ('WIS', 'Multinet')
 config["speech_rec_mode"] = st.selectbox(
     "Willow Speech Recognition Mode",
