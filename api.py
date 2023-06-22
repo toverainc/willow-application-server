@@ -95,6 +95,10 @@ def get_json_from_file(path):
 
     return JSONResponse(content=data)
 
+def save_json_to_file(path, content):
+    with open(path, "w") as config_file:
+        config_file.write(content)
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -123,8 +127,7 @@ async def get_nvs():
 @app.post("/api/config")
 async def post_config(request: Request):
     data = await request.json()
-    with open("user_config.json", "w") as config_file:
-        config_file.write(data)
+    save_json_to_file("user_config.json", data)
     msg = build_config_msg(data)
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)
