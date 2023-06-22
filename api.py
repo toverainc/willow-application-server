@@ -133,6 +133,15 @@ async def post_config(request: Request):
     await connmgr.broadcast(websocket, msg)
     return "Success"
 
+@app.post("/api/nvs")
+async def post_nvs(request: Request):
+    data = await request.json()
+    save_json_to_file("user_nvs.json", data)
+    msg = build_config_msg(data)
+    log.info(str(msg))
+    await connmgr.broadcast(websocket, msg)
+    return "Success"
+
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):
     log.error(f"body: {body} {type(body)}")
