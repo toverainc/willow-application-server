@@ -145,7 +145,7 @@ async def post_nvs(request: Request):
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):
     log.error(f"body: {body} {type(body)}")
-    msg = json.dumps({'cmd':'ota_start', 'ota_url': os.env['OTA_URL']})
+    msg = json.dumps({'cmd':'ota_start', 'ota_url': os.environ['OTA_URL']})
     try:
         ws = connmgr.get_client_by_hostname(body["hostname"])
         await ws.send_text(msg)
