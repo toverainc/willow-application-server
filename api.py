@@ -68,9 +68,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 connmgr = ConnMgr()
 
 
-def build_config_msg(config):
+def build_msg(config, container):
     try:
-        msg = json.dumps({'config': json.loads(config)}, sort_keys=True)
+        msg = json.dumps({container: json.loads(config)}, sort_keys=True)
         return msg
     except Exception as e:
         log.error(f"failed to build config message: {e}")
@@ -130,7 +130,7 @@ async def get_nvs():
 async def post_config(request: Request):
     data = await request.json()
     save_json_to_file("user_config.json", data)
-    msg = build_config_msg(data)
+    msg = build_msg(data, "config")
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)
     return "Success"
@@ -139,7 +139,7 @@ async def post_config(request: Request):
 async def post_nvs(request: Request):
     data = await request.json()
     save_json_to_file("user_nvs.json", data)
-    msg = build_config_msg(data)
+    msg = build_msg(data, "nvs")
     log.info(str(msg))
     await connmgr.broadcast(websocket, msg)
     return "Success"
@@ -166,7 +166,7 @@ async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | N
             msg = json.loads(data)
             if "cmd" in msg:
                 if msg["cmd"] == "get_config":
-                    await websocket.send_text(build_config_msg(get_config_ws()))
+                    await websocket.send_text(build_msg(get_config_ws(), "config"))
 
             elif "hello" in msg:
                 if "hostname" in msg["hello"]:
