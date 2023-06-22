@@ -43,12 +43,14 @@ except:
 try:
     with open("default_config.json", "r") as config_file:
         default_config = json.load(config_file)
+    config_file.close()
 except:
     default_config = {}
 
 try:
     with open("default_nvs.json", "r") as nvs_file:
         default_nvs = json.load(nvs_file)
+    nvs_file.close()
 except:
     default_nvs = {}
 
