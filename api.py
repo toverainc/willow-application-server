@@ -86,6 +86,16 @@ def get_config_ws():
         config_file.close()
         return config
 
+def get_json_from_file(path):
+    try:
+        with open(path, "r") as file:
+            data = json.load(file)
+    except:
+        data = {}
+
+    return JSONResponse(content=data)
+
+
 @app.on_event("startup")
 async def startup_event():
     start_ui()
@@ -104,13 +114,7 @@ async def get_clients():
 
 @app.get("/api/config")
 async def get_config():
-    try:
-        with open("user_config.json", "r") as config_file:
-            user_config = json.load(config_file)
-    except:
-        user_config = {}
-
-    return JSONResponse(content=user_config)
+    return get_json_from_file("user_config.json")
 
 @app.post("/api/config")
 async def post_config(request: Request):
