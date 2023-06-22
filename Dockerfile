@@ -9,3 +9,4 @@ RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
 COPY . .
 
 EXPOSE 8501
+EXPOSE 8502
