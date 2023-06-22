@@ -90,6 +90,7 @@ def get_json_from_file(path):
     try:
         with open(path, "r") as file:
             data = json.load(file)
+        file.close()
     except:
         data = {}
 
@@ -98,6 +99,7 @@ def get_json_from_file(path):
 def save_json_to_file(path, content):
     with open(path, "w") as config_file:
         config_file.write(content)
+    config_file.close()
 
 
 @app.on_event("startup")
