@@ -1,9 +1,10 @@
-import json
+import json, os
+import subprocess
+import threading
 from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
-from os import environ as env
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 
@@ -11,6 +12,17 @@ app = FastAPI()
 log = getLogger("WAS")
 websocket = WebSocket
 
+def start_ui():
+    def run(job):
+        proc = subprocess.Popen(job)
+        proc.wait()
+        return proc
+
+    job = ['streamlit', 'run', 'Home.py']
+
+    # server thread will remain active as long as FastAPI thread is running
+    thread = threading.Thread(name='WAS UI', target=run, args=(job,), daemon=True)
+    thread.start()
 
 class Client:
     def __init__(self, ua):
@@ -74,6 +86,10 @@ def get_config_ws():
         config_file.close()
         return config
 
+@app.on_event("startup")
+async def startup_event():
+    start_ui()
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -109,7 +125,7 @@ async def post_config(request: Request):
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):
     log.error(f"body: {body} {type(body)}")
-    msg = json.dumps({'cmd':'ota_start', 'ota_url': env['OTA_URL']})
+    msg = json.dumps({'cmd':'ota_start', 'ota_url': os.env['OTA_URL']})
     try:
         ws = connmgr.get_client_by_hostname(body["hostname"])
         await ws.send_text(msg)

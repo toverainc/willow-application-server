@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import requests
 
-was_api_config = "http://api:8502/api/config"
+was_api_config = "http://localhost:8502/api/config"
 
 def post_config(json):
     requests.post(was_api_config, json = json)

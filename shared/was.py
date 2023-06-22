@@ -2,8 +2,8 @@ import json
 import requests
 
 
-URL_WAS_API_CLIENTS = 'http://api:8502/api/clients'
-URL_WAS_API_OTA = 'http://api:8502/api/ota'
+URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
+URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 
 
 def get_devices():

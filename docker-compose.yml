@@ -1,5 +1,5 @@
 services:
-  ui:
+  was:
     restart: unless-stopped
     image: ${IMAGE}:${TAG}
     env_file:
@@ -8,19 +8,7 @@ services:
     #  dockerfile: Dockerfile
     ports:
       - ${LISTEN_IP}:${UI_LISTEN_PORT}:8501
-    volumes:
-      - ./:/app
-    command: ./entrypoint-ui.sh
-
-  api:
-    restart: unless-stopped
-    image: ${IMAGE}:${TAG}
-    env_file:
-      - .env
-    #build:
-    #  dockerfile: Dockerfile
-    ports:
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
-    command: ./entrypoint-api.sh
+    command: ./entrypoint.sh

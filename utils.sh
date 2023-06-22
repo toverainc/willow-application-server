@@ -75,7 +75,7 @@ freeze-requirements)
 start|run|up)
     dep_check
     shift
-    docker compose up "$@"
+    docker compose up --remove-orphans "$@"
 ;;
 
 stop|down)
