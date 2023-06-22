@@ -116,6 +116,10 @@ async def get_clients():
 async def get_config():
     return get_json_from_file("user_config.json")
 
+@app.get("/api/nvs")
+async def get_nvs():
+    return get_json_from_file("user_nvs.json")
+
 @app.post("/api/config")
 async def post_config(request: Request):
     data = await request.json()

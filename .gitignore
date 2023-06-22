@@ -162,3 +162,4 @@ cython_debug/
 # WAS
 static/
 user_config.json
+user_nvs.json
