@@ -98,9 +98,9 @@ config["ntp_config"] = st.selectbox(
 if config["ntp_config"] == "Host":
     config["ntp_host"] = st.text_input("NTP Host",value=config["ntp_host"])
 
-# Form submit button
-submitted = st.button("Save and Apply")
-if submitted:
+# Config form submit button
+config_submitted = st.button("Save and Apply")
+if config_submitted:
     json_object = json.dumps(config, indent=2)
     post_config(json_object)
     st.write(f"Configuration Saved:")
