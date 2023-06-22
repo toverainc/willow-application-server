@@ -3,12 +3,21 @@ import json
 import requests
 
 URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
+URL_WAS_API_NVS = "http://localhost:8502/api/nvs"
 
 def post_config(json):
     requests.post(URL_WAS_API_CONFIG, json = json)
 
+def post_nvs(json):
+    requests.post(URL_WAS_API_NVS, json=json)
+
 def get_config():
     response = requests.get(URL_WAS_API_CONFIG)
+    json = response.json()
+    return json
+
+def get_nvs():
+    response = requests.get(URL_WAS_API_NVS)
     json = response.json()
     return json
 
@@ -27,12 +36,24 @@ except:
     user_config = {}
 
 try:
+    user_nvs = get_nvs()
+except:
+    user_nvs = {}
+
+try:
     with open("default_config.json", "r") as config_file:
         default_config = json.load(config_file)
 except:
     default_config = {}
 
+try:
+    with open("default_nvs.json", "r") as nvs_file:
+        default_nvs = json.load(nvs_file)
+except:
+    default_nvs = {}
+
 config = merge_dict(default_config, user_config)
+nvs = merge_dict(default_nvs, user_nvs)
 
 speech_rec_mode_values = ('WIS', 'Multinet')
 config["speech_rec_mode"] = st.selectbox(
@@ -105,3 +126,16 @@ if config_submitted:
     post_config(json_object)
     st.write(f"Configuration Saved:")
     st.json(config)
+
+
+nvs["WAS"]["URL"] = st.text_input("Willow Application Server URL", value=nvs["WAS"]["URL"])
+nvs["WIFI"]["SSID"] = st.text_input("WiFi SSID", value=nvs["WIFI"]["SSID"])
+nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"])
+
+# NVS form submit button
+nvs_submitted = st.button("Save and Apply", key="btn_nvs")
+if nvs_submitted:
+    json_object = json.dumps(nvs, indent=2)
+    post_nvs(json_object)
+    st.write("NVS values saved")
+    st.json(nvs)
