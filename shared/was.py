@@ -11,5 +11,8 @@ def get_devices():
     json = response.json()
     return json
 
+def num_devices():
+    return(len(get_devices()))
+
 def ota(hostname):
     requests.post(URL_WAS_API_OTA, json={'hostname': hostname})
