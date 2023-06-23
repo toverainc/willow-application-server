@@ -37,29 +37,6 @@ with clients:
 
 with configuration:
 
-    URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
-    URL_WAS_API_NVS = "http://localhost:8502/api/nvs"
-
-    def post_config(json):
-        requests.post(URL_WAS_API_CONFIG, json = json)
-
-    def post_nvs(json):
-        requests.post(URL_WAS_API_NVS, json=json)
-
-    def get_config():
-        response = requests.get(URL_WAS_API_CONFIG)
-        json = response.json()
-        return json
-
-    def get_nvs():
-        response = requests.get(URL_WAS_API_NVS)
-        json = response.json()
-        return json
-
-    def merge_dict(dict_1, dict_2):
-        result = dict_1 | dict_2
-        return result
-
     try:
         user_config = get_config()
     except:
