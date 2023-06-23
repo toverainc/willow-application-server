@@ -18,7 +18,7 @@ def start_ui():
         proc.wait()
         return proc
 
-    job = ['streamlit', 'run', 'Home.py']
+    job = ['streamlit', 'run', 'ui.py']
 
     # server thread will remain active as long as FastAPI thread is running
     thread = threading.Thread(name='WAS UI', target=run, args=(job,), daemon=True)
