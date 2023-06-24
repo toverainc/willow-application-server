@@ -27,10 +27,14 @@ def start_ui():
 class Client:
     def __init__(self, ua):
         self.hostname = "unknown"
+        self.hw_type = "unknown"
         self.ua = ua
 
     def set_hostname(self, hostname):
         self.hostname = hostname
+
+    def set_hw_type(self, hw_type):
+        self.hw_type = hw_type
 
 
 class ConnMgr:
@@ -62,6 +66,8 @@ class ConnMgr:
     def update_client(self, ws, key, value):
         if key == "hostname":
             self.connected_clients[ws].set_hostname(value)
+        elif key == "hw_type":
+            self.connected_clients[ws].set_hw_type(value)
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -114,7 +120,13 @@ def read_root():
 async def get_clients():
     clients = []
     for ws, client in connmgr.connected_clients.items():
-        clients.append({'hostname': client.hostname, 'ip': ws.client.host, 'port': ws.client.port, 'user_agent': client.ua})
+        clients.append({
+            'hostname': client.hostname,
+            'hw_type': client.hw_type,
+            'ip': ws.client.host,
+            'port': ws.client.port,
+            'user_agent': client.ua
+        })
 
     return JSONResponse(content=clients)
 
@@ -171,6 +183,8 @@ async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | N
             elif "hello" in msg:
                 if "hostname" in msg["hello"]:
                     connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
+                if "hw_type" in msg["hello"]:
+                    connmgr.update_client(websocket, "hw_type", msg["hello"]["hw_type"])
 
             else:
                 await connmgr.broadcast(websocket, data)
