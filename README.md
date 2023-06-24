@@ -1,5 +1,4 @@
-# willow-application-server
-Willow Application Server
+# Willow Application Server
 
 ## Get Started
 
