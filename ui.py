@@ -19,16 +19,17 @@ with home:
 
 with clients:
 	devices = get_devices()
-	cols = st.columns(5)
-	fields = ["Hostname", "IP", "Port", "User Agent", "Actions"]
+	cols = st.columns(6)
+	fields = ["Hostname", "Hardware Type", "IP", "Port", "User Agent", "Actions"]
 
 	for col, field in zip(cols, fields):
 		col.write(f"**{field}**")
 
 
 	for idx, row in enumerate(devices):
-		hostname, ip, port, user_agent, actions = st.columns(5)
+		hostname, hw_type, ip, port, user_agent, actions = st.columns(6)
 		hostname.write(row['hostname'])
+		hw_type.write(row['hw_type'])
 		ip.write(row['ip'])
 		port.write(row['port'])
 		user_agent.write(row['user_agent'])
