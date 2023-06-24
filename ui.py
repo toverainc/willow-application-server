@@ -148,6 +148,48 @@ with configuration:
         if config["ntp_config"] == "Host":
             config["ntp_host"] = st.text_input("NTP Host",value=config["ntp_host"])
 
+
+        advanced = st.checkbox(label='Show advanced settings')
+        if advanced:
+
+            audio_codecs = ('AMR-WB', 'PCM', 'WAV')
+            config["audio_codec"] = st.selectbox("Audio codec to use for streaming to WIS",
+                    audio_codecs, audio_codecs.index(config["audio_codec"])
+            )
+
+            vad_modes = (0, 1, 2, 3, 4)
+            config["vad_mode"] = st.selectbox("Voice Activity Detection Mode",
+                    vad_modes, vad_modes.index(config["vad_mode"]),
+                    help='''Higher modes are more aggressive and are more restrictive in detecting speech'''
+            )
+
+            wake_modes = ('1CH_90', '1CH_95', '2CH_90', '2CH_95', '3CH_90', '3CH_95')
+            config["wake_mode"] = st.selectbox("Wake Word Recognition Mode",
+                    wake_modes, wake_modes.index(config["wake_mode"]),
+                    help='''The probability of being recognized as a wake word increases with increasing mode.
+                    As a consequence, a higher mode will result in more false positives.'''
+            )
+
+            config["mic_gain"] = st.slider("Microphone Gain", 0, 14, value=config["mic_gain"],
+                    help='''0dB (0), 3dB (1), 6dB (2), 9dB (3), 12dB (4), 15dB (5), 18dB (6), 21dB (7),
+                    24dB (8), 27dB (9), 30dB (10), 33dB (11), 34.5dB (12), 36dB (13), 37.5 (dB)'''
+            )
+
+            config["record_buffer"] = st.slider("Record Buffer", 1, 16, value=config["record_buffer"],
+                    help='''Custom record buffer for timing and latency.
+                    Users with a local WIS instance may want to try setting lower (10 or so)'''
+            )
+
+            config["stream_timeout"] = st.slider("Maximum speech duration", 1, 30, value=config["stream_timeout"],
+                    help='Stop speech recognition after N seconds after wake event to avoid endless stream when VAD END does not trigger.'
+            )
+
+            config["vad_timeout"] = st.slider("VAD Timeout", 1, 1000, value=config["vad_timeout"],
+                    help='''VAD (Voice Activity Detection) timeout in ms - How long to wait after end of speech to trigger end of VAD.
+                    Improves response times but can also clip speech if you do not talk fast enough.
+                    Allows for entering 1 - 1000 ms but if you go lower than 50 or so good luck...'''
+            )
+
         # Config form submit button
         config_submitted = st.button("Save and Apply")
         if config_submitted:
