@@ -2,11 +2,13 @@ import json, os
 import subprocess
 import threading
 from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
+
+from shared.was import construct_url
 
 app = FastAPI()
 log = getLogger("WAS")
@@ -142,6 +144,16 @@ async def get_clients():
 @app.get("/api/config")
 async def get_config():
     return get_json_from_file("user_config.json")
+
+@app.get("/api/ha_url")
+async def get_ha_url():
+    try:
+        resp = await get_config()
+        config = json.loads(resp.body)
+        url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
+        return PlainTextResponse(url)
+    except Exception as e:
+        return str(e)
 
 @app.get("/api/nvs")
 async def get_nvs():
