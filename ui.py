@@ -137,7 +137,13 @@ with configuration:
             elif config["rest_auth_type"] == "Header":
                 config["rest_auth_header"] = st.text_input("REST Authentication Header", value=config["rest_auth_header"])
 
-        config["timezone"] = st.text_input("Timezone",value=config["timezone"])
+        tzdata = get_tz()
+        tzkeys = list(tzdata.keys())
+        tzvalues = list(tzdata.values())
+        tzidx = tzkeys.index(config["timezone_continent_city"])
+        tz = st.selectbox(label="Timezone", options=tzdata.keys(), index=tzidx)
+        config["timezone"] = tzdata[tz]
+        config["timezone_continent_city"] = tz
 
         config["speaker_volume"] = st.slider('Speaker Volume', 0, 100, value=config["speaker_volume"])
 
