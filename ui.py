@@ -197,7 +197,7 @@ with configuration:
         config_submitted = st.button("Save and Apply")
         if config_submitted:
             json_object = json.dumps(config, indent=2)
-            post_config(json_object)
+            post_config(json_object, True)
             st.write(f"Configuration Saved:")
             st.json(config)
 

@@ -102,6 +102,15 @@ def get_json_from_file(path):
 
     return JSONResponse(content=data)
 
+async def post_config(request, apply=False):
+    data = await request.json()
+    save_json_to_file("user_config.json", data)
+    msg = build_msg(data, "config")
+    log.info(str(msg))
+    if apply:
+        await connmgr.broadcast(websocket, msg)
+    return "Success"
+
 def save_json_to_file(path, content):
     with open(path, "w") as config_file:
         config_file.write(content)
@@ -138,14 +147,13 @@ async def get_config():
 async def get_nvs():
     return get_json_from_file("user_nvs.json")
 
-@app.post("/api/config")
-async def post_config(request: Request):
-    data = await request.json()
-    save_json_to_file("user_config.json", data)
-    msg = build_msg(data, "config")
-    log.info(str(msg))
-    await connmgr.broadcast(websocket, msg)
-    return "Success"
+@app.post("/api/config/apply")
+async def apply_config(request: Request):
+    await post_config(request, True)
+
+@app.post("/api/config/save")
+async def save_config(request: Request):
+    await post_config(request, False)
 
 @app.post("/api/nvs")
 async def post_nvs(request: Request):
