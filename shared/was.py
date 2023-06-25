@@ -8,6 +8,20 @@ URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
 URL_WAS_API_NVS = "http://localhost:8502/api/nvs"
 
+def construct_url(host, port, tls=False, ws=False):
+    if tls:
+        if ws:
+            scheme = "wss"
+        else:
+            scheme = "https"
+    else:
+        if ws:
+            scheme = "ws"
+        else:
+            scheme = "http"
+
+    return f"{scheme}://{host}:{port}"
+
 def get_config():
 	response = requests.get(URL_WAS_API_CONFIG)
 	json = response.json()
