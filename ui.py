@@ -209,3 +209,8 @@ with multinet:
             We currently do not support dynamic Multinet model generation.
             If you want to use Multinet you need to build using the willow-build container.
         """)
+
+        if config["command_endpoint"] == "Home Assistant":
+            ha_url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
+            ha_entities = get_ha_entities(ha_url, config["hass_token"])
+            st.table(data=ha_entities)
