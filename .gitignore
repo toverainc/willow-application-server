@@ -160,6 +160,8 @@ cython_debug/
 #.idea/
 
 # WAS
+gen-tz.py
 static/
+tz.json
 user_config.json
 user_nvs.json

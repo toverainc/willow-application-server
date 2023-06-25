@@ -57,6 +57,11 @@ build-docker() {
     docker build -t "$IMAGE":"$TAG" .
 }
 
+gen-tz() {
+    curl --output gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/gen-tz.py
+    python3 gen-tz.py --json > tz.json
+}
+
 shell() {
     docker run -it -v $WAS_DIR:/app -v $WAS_DIR/cache:/root/.cache "$IMAGE":"$TAG" \
         /usr/bin/env bash
@@ -65,6 +70,7 @@ shell() {
 case $1 in
 
 build-docker|build)
+    gen-tz
     build-docker
 ;;
 
