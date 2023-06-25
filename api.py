@@ -145,6 +145,16 @@ async def get_clients():
 async def get_config():
     return get_json_from_file("user_config.json")
 
+@app.get("/api/ha_token")
+async def get_ha_token():
+    try:
+        resp = await get_config()
+        config = json.loads(resp.body)
+        return PlainTextResponse(config["hass_token"])
+    except Exception as e:
+        return str(e)
+
+
 @app.get("/api/ha_url")
 async def get_ha_url():
     try:
