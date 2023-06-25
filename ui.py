@@ -76,8 +76,8 @@ with configuration:
         nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"])
 
         # NVS form submit button
-        nvs_submitted = st.button("Save and Apply", key="btn_nvs")
-        if nvs_submitted:
+        nvs_apply = st.button("Save and Apply", key="btn_nvs")
+        if nvs_apply:
             json_object = json.dumps(nvs, indent=2)
             post_nvs(json_object)
             st.write("NVS values saved")
@@ -194,8 +194,8 @@ with configuration:
             )
 
         # Config form submit button
-        config_submitted = st.button("Save and Apply")
-        if config_submitted:
+        config_apply = st.button("Save and Apply")
+        if config_apply:
             json_object = json.dumps(config, indent=2)
             post_config(json_object, True)
             st.write(f"Configuration Saved:")
