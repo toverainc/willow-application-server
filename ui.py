@@ -11,7 +11,7 @@ title = 'Willow Application Server'
 st.set_page_config(page_title=title, layout='wide')
 st.title(title)
 
-home, clients, configuration = st.tabs(["Home", "Clients", "Configuration"])
+home, clients, configuration, multinet = st.tabs(["Home", "Clients", "Configuration", "Multinet"])
 
 with home:
     st.metric(label='Connected Clients', value=num_devices())
@@ -198,3 +198,12 @@ with configuration:
             post_config(json_object)
             st.write(f"Configuration Saved:")
             st.json(config)
+
+with multinet:
+    if config["speech_rec_mode"] != "Multinet":
+        st.warning("Speech Recognition Mode is not set to Multinet.")
+    else:
+        st.warning("""
+            We currently do not support dynamic Multinet model generation.
+            If you want to use Multinet you need to build using the willow-build container.
+        """)
