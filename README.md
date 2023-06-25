@@ -22,3 +22,6 @@ OTA_URL="http://my_was_host:8502/static/ota.bin"
 
 ## Configure and update Willow devices
 Visit ```http://my_was_host:8501``` in your browser.
+
+## OTA
+For now you will need to copy ```willow.bin``` from ```build/willow.bin``` to the OTA_URL set above. We are working on manifest support.
