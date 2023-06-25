@@ -56,6 +56,16 @@ def get_nvs():
 	json = response.json()
 	return json
 
+def get_tz():
+    try:
+        with open("tz.json", "r") as config_file:
+            tz = json.load(config_file)
+        config_file.close()
+    except:
+        tz = {}
+
+    return tz
+
 def merge_dict(dict_1, dict_2):
 	result = dict_1 | dict_2
 	return result
