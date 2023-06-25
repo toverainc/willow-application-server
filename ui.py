@@ -27,6 +27,8 @@ with clients:
 
 
 	for idx, row in enumerate(devices):
+		if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
+			continue
 		hostname, hw_type, ip, port, user_agent, actions = st.columns(6)
 		hostname.write(row['hostname'])
 		hw_type.write(row['hw_type'])
