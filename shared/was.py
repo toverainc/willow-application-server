@@ -32,6 +32,20 @@ def get_devices():
     json = response.json()
     return json
 
+def get_ha_entities(url, token):
+    if token is None:
+        return json.dumps({'error':'HA token not set'})
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    url = f"{url}/api/states"
+    response = requests.get(url, headers=headers)
+    json = response.json()
+    json.sort(key=lambda x: x['entity_id'])
+    return json
+
 def get_nvs():
 	response = requests.get(URL_WAS_API_NVS)
 	json = response.json()
