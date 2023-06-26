@@ -113,6 +113,15 @@ async def post_config(request, apply=False):
         await connmgr.broadcast(websocket, msg)
     return "Success"
 
+async def post_nvs(request, apply=False):
+    data = await request.json()
+    save_json_to_file("user_nvs.json", data)
+    msg = build_msg(data, "nvs")
+    log.info(str(msg))
+    if apply:
+        await connmgr.broadcast(websocket, msg)
+    return "Success"
+
 def save_json_to_file(path, content):
     with open(path, "w") as config_file:
         config_file.write(content)
@@ -177,14 +186,13 @@ async def apply_config(request: Request):
 async def save_config(request: Request):
     await post_config(request, False)
 
-@app.post("/api/nvs")
-async def post_nvs(request: Request):
-    data = await request.json()
-    save_json_to_file("user_nvs.json", data)
-    msg = build_msg(data, "nvs")
-    log.info(str(msg))
-    await connmgr.broadcast(websocket, msg)
-    return "Success"
+@app.post("/api/nvs/apply")
+async def apply_nvs(request: Request):
+    await post_nvs(request, True)
+
+@app.post("/api/nvs/save")
+async def save_nvs(request: Request):
+    await post_nvs(request, False)
 
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):

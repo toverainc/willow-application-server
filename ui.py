@@ -79,7 +79,7 @@ with configuration:
         nvs_apply = st.button("Save and Apply", key="btn_nvs")
         if nvs_apply:
             json_object = json.dumps(nvs, indent=2)
-            post_nvs(json_object)
+            post_nvs(json_object, True)
             st.write("NVS values saved")
             st.json(nvs)
 

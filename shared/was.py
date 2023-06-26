@@ -9,6 +9,8 @@ URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
 URL_WAS_API_CONFIG_APPLY = "http://localhost:8502/api/config/apply"
 URL_WAS_API_CONFIG_SAVE = "http://localhost:8502/api/config/save"
 URL_WAS_API_NVS = "http://localhost:8502/api/nvs"
+URL_WAS_API_NVS_APPLY = "http://localhost:8502/api/nvs/apply"
+URL_WAS_API_NVS_SAVE = "http://localhost:8502/api/nvs/save"
 
 def apply_config():
     requests.post(f"{URL_WAS_API_CONFIG_APPLY}")
@@ -83,5 +85,9 @@ def post_config(json, apply=False):
         url = URL_WAS_API_CONFIG_SAVE
     requests.post(url, json = json)
 
-def post_nvs(json):
-	requests.post(URL_WAS_API_NVS, json=json)
+def post_nvs(json, apply=False):
+    if apply:
+        url = URL_WAS_API_NVS_APPLY
+    else:
+        url = URL_WAS_API_NVS_SAVE
+    requests.post(url, json=json)
