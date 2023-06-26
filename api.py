@@ -105,22 +105,48 @@ def get_json_from_file(path):
     return JSONResponse(content=data)
 
 async def post_config(request, apply=False):
-    data = await request.json()
-    save_json_to_file("user_config.json", data)
-    msg = build_msg(data, "config")
-    log.info(str(msg))
-    if apply:
-        await connmgr.broadcast(websocket, msg)
-    return "Success"
+	data = await request.json()
+	if 'hostname' in data:
+		hostname = data["hostname"]
+		data = await get_config()
+		data = json.loads(data.body)
+		msg = build_msg(json.dumps(data), "config")
+		try:
+			ws = connmgr.get_client_by_hostname(hostname)
+			await ws.send_text(msg)
+			return "Success"
+		except Exception as e:
+			log.error(f"failed to apply config to {data['hostname']}")
+			return "Error"
+	else:
+		save_json_to_file("user_config.json", data)
+		msg = build_msg(data, "config")
+		log.info(str(msg))
+		if apply:
+			await connmgr.broadcast(websocket, msg)
+		return "Success"
 
 async def post_nvs(request, apply=False):
-    data = await request.json()
-    save_json_to_file("user_nvs.json", data)
-    msg = build_msg(data, "nvs")
-    log.info(str(msg))
-    if apply:
-        await connmgr.broadcast(websocket, msg)
-    return "Success"
+	data = await request.json()
+	if 'hostname' in data:
+		hostname = data["hostname"]
+		data = await get_nvs()
+		data = json.loads(data.body)
+		msg = build_msg(json.dumps(data), "nvs")
+		try:
+			ws = connmgr.get_client_by_hostname(hostname)
+			await ws.send_text(msg)
+			return "Success"
+		except Exception as e:
+			log.error(f"failed to apply config to {data['hostname']}")
+			return "Error"
+	else:
+		save_json_to_file("user_nvs.json", data)
+		msg = build_msg(data, "nvs")
+		log.info(str(msg))
+		if apply:
+			await connmgr.broadcast(websocket, msg)
+		return "Success"
 
 def save_json_to_file(path, content):
     with open(path, "w") as config_file:
