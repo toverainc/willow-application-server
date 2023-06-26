@@ -26,6 +26,7 @@ with clients:
 		col.write(f"**{field}**")
 
 
+	btn_key = 0
 	for idx, row in enumerate(devices):
 		if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
 			continue
@@ -35,7 +36,13 @@ with clients:
 		ip.write(row['ip'])
 		port.write(row['port'])
 		user_agent.write(row['user_agent'])
-		actions.button(key=idx, kwargs=dict(hostname=row['hostname']), label="OTA", on_click=ota, type="primary")
+
+		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config", on_click=apply_config_host, type="primary")
+		btn_key += 1
+		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS", on_click=apply_nvs_host, type="primary")
+		btn_key += 1
+		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA", on_click=ota, type="primary")
+		btn_key += 1
 
 
 with configuration:

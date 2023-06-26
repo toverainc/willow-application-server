@@ -15,6 +15,12 @@ URL_WAS_API_NVS_SAVE = "http://localhost:8502/api/nvs/save"
 def apply_config():
     requests.post(f"{URL_WAS_API_CONFIG_APPLY}")
 
+def apply_config_host(hostname):
+    requests.post(URL_WAS_API_CONFIG_APPLY, json={'hostname': hostname})
+
+def apply_nvs_host(hostname):
+    requests.post(URL_WAS_API_NVS_APPLY, json={'hostname': hostname})
+
 def construct_url(host, port, tls=False, ws=False):
     if tls:
         if ws:
