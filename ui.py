@@ -83,6 +83,12 @@ with configuration:
             st.write("NVS values saved")
             st.json(nvs)
 
+        nvs_save = st.button("Save", key="btn_nvs_save")
+        if nvs_save:
+            json_object = json.dumps(nvs, indent=2)
+            post_nvs(json_object, False)
+            st.write(f"NVS values saved")
+            st.json(nvs)
 
     expander_main = st.expander(label='Main settings')
     with expander_main:
