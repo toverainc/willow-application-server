@@ -1,4 +1,5 @@
 import json
+import re
 import requests
 import streamlit as st
 
@@ -100,11 +101,24 @@ def post_nvs(json, apply=False):
 
 def validate_nvs(nvs):
     ok = True
+    if not validate_url(nvs['WAS']['URL'], True):
+        ok = False
     if not validate_wifi_psk(nvs['WIFI']['PSK']):
         ok = False
     if not validate_wifi_ssid(nvs['WIFI']['SSID']):
         ok = False
     return ok
+
+def validate_url(url, ws=False):
+    if ws:
+        pattern = "^wss?://"
+    else:
+        pattern = "^https?://"
+
+    if re.match(pattern, url):
+        return True
+    st.write(f":red[Invalid URL: {url}]")
+    return False
 
 def validate_wifi_psk(psk):
     if len(psk) < 8 or len(psk) > 63:
