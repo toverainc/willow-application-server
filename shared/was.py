@@ -1,6 +1,6 @@
 import json
 import requests
-
+import streamlit as st
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
@@ -97,3 +97,24 @@ def post_nvs(json, apply=False):
     else:
         url = URL_WAS_API_NVS_SAVE
     requests.post(url, json=json)
+
+def validate_nvs(nvs):
+    ok = True
+    if not validate_wifi_psk(nvs['WIFI']['PSK']):
+        ok = False
+    if not validate_wifi_ssid(nvs['WIFI']['SSID']):
+        ok = False
+    return ok
+
+def validate_wifi_psk(psk):
+    if len(psk) < 8 or len(psk) > 63:
+        st.write(":red[Wi-Fi WPA passphrase must be between 8 and 63 ASCII characters]")
+        return False
+    return True
+
+def validate_wifi_ssid(ssid):
+    # TODO:detect non-ASCII characters (streamlit or fastapi converts them to \u.... and the re.match we used in CMake doesn't catch those
+    if len(ssid) < 2 or len(ssid) > 32:
+        st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
+        return False
+    return True
