@@ -26,7 +26,7 @@
   "vad_mode": 3,
   "vad_timeout": 300,
   "wake_mode": "2CH_90",
-  "wake_word": "Hi ESP",
+  "wake_word": "hiesp",
   "wis_tts_url": "https://infer.tovera.io/api/tts",
   "wis_url": "https://infer.tovera.io/api/willow"
 }

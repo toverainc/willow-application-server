@@ -116,10 +116,10 @@ with configuration:
         if config["audio_response_type"] == "TTS":
             config["wis_tts_url"] = st.text_input("Willow Inference Server TTS URL", value=config["wis_tts_url"])
 
-        wake_word_values = ('Hi ESP', 'Alexa', 'Hi Lexin')
+        wake_words = {'hiesp': 'Hi ESP', 'alexa': 'Alexa', 'hilexin': 'Hi Lexin'}
         config["wake_word"] = st.selectbox(
             "Willow Wake Word",
-            wake_word_values, wake_word_values.index(config["wake_word"]))
+            wake_words, index=list(wake_words.keys()).index(config["wake_word"]), format_func=lambda x: wake_words.get(x))
 
         command_endpoint_values = ('Home Assistant', 'openHAB', 'REST')
         config["command_endpoint"] = st.selectbox(
