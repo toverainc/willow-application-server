@@ -99,14 +99,35 @@ def post_nvs(json, apply=False):
         url = URL_WAS_API_NVS_SAVE
     requests.post(url, json=json)
 
+def test_url(url, error_msg):
+    ok = True
+    try:
+        resp = requests.get(url)
+        ok = True
+    except:
+        ok = False
+
+    if ok:
+        return True
+    else:
+        st.write(f":red[{error_msg}]")
+        return False
+
 def validate_config(config):
     ok = True
     if config['command_endpoint'] == 'Home Assistant':
         if not validate_string(config['hass_token'], "Invalid Home Assistant token", 1):
             ok = False
+        ha_url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
+        if not st.session_state['skip_connectivity_checks']:
+            if not test_url(ha_url, f":red[Unable to reach Home Assistant on {ha_url}]"):
+                ok = False
     elif config['command_endpoint'] == 'openHAB':
         if not validate_url(config['openhab_url']):
             ok = False
+        elif not st.session_state['skip_connectivity_checks']:
+            if not test_url(config['openhab_url'], f":red[Unable to reach openHAB on {config['openhab_url']}]"):
+                ok = False
     elif config['command_endpoint'] == 'REST':
         if config['rest_auth_type'] == 'Basic':
             if not validate_string(config['rest_auth_pass'], "Invalid REST auth password", 1):
@@ -118,7 +139,9 @@ def validate_config(config):
                 ok = False
         if not validate_url(config['rest_url']):
             ok = False
-
+        elif not st.session_state['skip_connectivity_checks']:
+            if not test_url(config['rest_url'], f":red[Unable to reach openHAB on {config['rest_url']}]"):
+                ok = False
     if config['speech_rec_mode']:
         if not validate_url(config['wis_tts_url']):
             ok = False

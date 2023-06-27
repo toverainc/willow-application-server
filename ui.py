@@ -214,6 +214,8 @@ with configuration:
                     Allows for entering 1 - 1000 ms but if you go lower than 50 or so good luck...'''
             )
 
+        skip_connectivity_checks = st.checkbox(key='skip_connectivity_checks', label='Skip connectivity checks')
+
         # Config form submit button
         config_save = st.button("Save")
         if config_save:
