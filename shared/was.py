@@ -99,6 +99,33 @@ def post_nvs(json, apply=False):
         url = URL_WAS_API_NVS_SAVE
     requests.post(url, json=json)
 
+def validate_config(config):
+    ok = True
+    if config['command_endpoint'] == 'Home Assistant':
+        if not validate_string(config['hass_token'], "Invalid Home Assistant token", 1):
+            ok = False
+    elif config['command_endpoint'] == 'openHAB':
+        if not validate_url(config['openhab_url']):
+            ok = False
+    elif config['command_endpoint'] == 'REST':
+        if config['rest_auth_type'] == 'Basic':
+            if not validate_string(config['rest_auth_pass'], "Invalid REST auth password", 1):
+                ok = False
+            if not validate_string(config['rest_auth_user'], "Invalid REST auth username", 1):
+                ok = False
+        elif config['rest_auth_type'] == 'Header':
+            if not validate_string(config['rest_auth_header'], "Invalid REST auth header", 1):
+                ok = False
+        if not validate_url(config['rest_url']):
+            ok = False
+
+    if config['speech_rec_mode']:
+        if not validate_url(config['wis_tts_url']):
+            ok = False
+    if not validate_url(config['wis_url']):
+            ok = False
+    return ok
+
 def validate_nvs(nvs):
     ok = True
     if not validate_url(nvs['WAS']['URL'], True):
@@ -108,6 +135,12 @@ def validate_nvs(nvs):
     if not validate_wifi_ssid(nvs['WIFI']['SSID']):
         ok = False
     return ok
+
+def validate_string(string, error_msg, min_len=1):
+    if len(string) < min_len:
+        st.write(f":red[{error_msg}]")
+        return False
+    return True
 
 def validate_url(url, ws=False):
     if ws:

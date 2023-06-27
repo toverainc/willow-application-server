@@ -217,17 +217,19 @@ with configuration:
         # Config form submit button
         config_save = st.button("Save")
         if config_save:
-            json_object = json.dumps(config, indent=2)
-            post_config(json_object, False)
-            st.write(f"Configuration Saved:")
-            st.json(config)
+            if validate_config(config):
+                json_object = json.dumps(config, indent=2)
+                post_config(json_object, False)
+                st.write(f"Configuration Saved:")
+                st.json(config)
 
         config_apply = st.button("Save and Apply")
         if config_apply:
-            json_object = json.dumps(config, indent=2)
-            post_config(json_object, True)
-            st.write(f"Configuration Saved:")
-            st.json(config)
+            if validate_config(config):
+                json_object = json.dumps(config, indent=2)
+                post_config(json_object, True)
+                st.write(f"Configuration Saved:")
+                st.json(config)
 
 with multinet:
     if config["speech_rec_mode"] != "Multinet":
