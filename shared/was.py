@@ -37,9 +37,9 @@ def construct_url(host, port, tls=False, ws=False):
     return f"{scheme}://{host}:{port}"
 
 def get_config():
-	response = requests.get(URL_WAS_API_CONFIG)
-	json = response.json()
-	return json
+    response = requests.get(URL_WAS_API_CONFIG)
+    json = response.json()
+    return json
 
 def get_devices():
     response = requests.get(URL_WAS_API_CLIENTS)
@@ -61,9 +61,9 @@ def get_ha_entities(url, token):
     return json
 
 def get_nvs():
-	response = requests.get(URL_WAS_API_NVS)
-	json = response.json()
-	return json
+    response = requests.get(URL_WAS_API_NVS)
+    json = response.json()
+    return json
 
 def get_tz():
     try:
@@ -76,8 +76,8 @@ def get_tz():
     return tz
 
 def merge_dict(dict_1, dict_2):
-	result = dict_1 | dict_2
-	return result
+    result = dict_1 | dict_2
+    return result
 
 def num_devices():
     return(len(get_devices()))

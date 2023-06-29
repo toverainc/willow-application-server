@@ -4,13 +4,13 @@
     "formatters": {
         "default": {
             "()": "uvicorn.logging.DefaultFormatter",
-	    "datefmt": "%Y-%m-%dT%H:%M:%S",
+        "datefmt": "%Y-%m-%dT%H:%M:%S",
             "fmt": "[%(asctime)s] %(levelprefix)s %(message)s",
             "use_colors": true
         },
         "access": {
             "()": "uvicorn.logging.AccessFormatter",
-	    "datefmt": "%Y-%m-%dT%H:%M:%S",
+        "datefmt": "%Y-%m-%dT%H:%M:%S",
             "fmt": "[%(asctime)s] %(levelprefix)s %(client_addr)s - '%(request_line)s' %(status_code)s"
         }
     },

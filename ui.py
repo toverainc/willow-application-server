@@ -18,31 +18,31 @@ with home:
 
 
 with clients:
-	devices = get_devices()
-	cols = st.columns(6)
-	fields = ["Hostname", "Hardware Type", "IP", "Port", "User Agent", "Actions"]
+    devices = get_devices()
+    cols = st.columns(6)
+    fields = ["Hostname", "Hardware Type", "IP", "Port", "User Agent", "Actions"]
 
-	for col, field in zip(cols, fields):
-		col.write(f"**{field}**")
+    for col, field in zip(cols, fields):
+        col.write(f"**{field}**")
 
 
-	btn_key = 0
-	for idx, row in enumerate(devices):
-		if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
-			continue
-		hostname, hw_type, ip, port, user_agent, actions = st.columns(6)
-		hostname.write(row['hostname'])
-		hw_type.write(row['hw_type'])
-		ip.write(row['ip'])
-		port.write(row['port'])
-		user_agent.write(row['user_agent'])
+    btn_key = 0
+    for idx, row in enumerate(devices):
+        if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
+            continue
+        hostname, hw_type, ip, port, user_agent, actions = st.columns(6)
+        hostname.write(row['hostname'])
+        hw_type.write(row['hw_type'])
+        ip.write(row['ip'])
+        port.write(row['port'])
+        user_agent.write(row['user_agent'])
 
-		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config", on_click=apply_config_host, type="primary")
-		btn_key += 1
-		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS", on_click=apply_nvs_host, type="primary")
-		btn_key += 1
-		actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA", on_click=ota, type="primary")
-		btn_key += 1
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config", on_click=apply_config_host, type="primary")
+        btn_key += 1
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS", on_click=apply_nvs_host, type="primary")
+        btn_key += 1
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA", on_click=ota, type="primary")
+        btn_key += 1
 
 
 with configuration:
