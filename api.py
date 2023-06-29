@@ -200,6 +200,10 @@ async def get_ha_url():
     except Exception as e:
         return str(e)
 
+@app.get("/api/multinet")
+async def get_multinet():
+    return get_json_from_file("user_multinet.json")
+
 @app.get("/api/nvs")
 async def get_nvs():
     return get_json_from_file("user_nvs.json")
