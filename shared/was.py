@@ -3,6 +3,8 @@ import re
 import requests
 import streamlit as st
 
+from num2words import num2words
+
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 
@@ -45,6 +47,29 @@ def get_devices():
     response = requests.get(URL_WAS_API_CLIENTS)
     json = response.json()
     return json
+
+def get_ha_commands_for_entity(entity):
+    commands = []
+    pattern = r'[^A-Za-z- ]'
+
+    numbers = re.search(r'(\d{1,})', entity)
+    if numbers:
+        for number in numbers.groups():
+            entity = entity.replace(number, f" {num2words(int(number))} ")
+
+    entity = entity.replace('_', ' ')
+    entity = re.sub(pattern, '', entity)
+    entity = " ".join(entity.split())
+    entity = entity.upper()
+
+    on = f'TURN ON {entity}'
+    off = f'TURN OFF {entity}'
+
+    # ESP_MN_MAX_PHRASE_LEN=63
+    if len(off) < 63:
+        commands.extend([on, off])
+
+    return commands
 
 def get_ha_entities(url, token):
     if token is None:

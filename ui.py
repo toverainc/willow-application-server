@@ -243,6 +243,45 @@ with multinet:
         """)
 
         if config["command_endpoint"] == "Home Assistant":
-            ha_url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
-            ha_entities = get_ha_entities(ha_url, config["hass_token"])
-            st.table(data=ha_entities)
+            entity_types = ["cover", "fan", "light", "scene", "switch"]
+            cols = st.columns(len(entity_types))
+
+            for col, field in zip(cols, entity_types):
+                with col:
+                    st.checkbox(field, key=f"{field}")
+
+            ha_commands = []
+            fetch_ha = st.button("Generate Multinet commands for selected Home Assistant entity types")
+            save_ha = st.button("Save commands")
+
+            if fetch_ha:
+                ha_url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
+                ha_entities = get_ha_entities(ha_url, config["hass_token"])
+
+                for entity in ha_entities:
+                    if 'friendly_name' in  entity['attributes']:
+                        entity_type = entity['entity_id'].split('.')[0]
+                        if entity_type in st.session_state and st.session_state[entity_type]:
+                            friendly_name = entity['attributes']['friendly_name']
+                            ha_commands.extend(get_ha_commands_for_entity(friendly_name))
+
+            else:
+                if not save_ha:
+                    try:
+                        multinet_commands_file = open("user_multinet.json", "r")
+                        ha_commands = json.load(multinet_commands_file)
+                    except Exception:
+                        pass
+
+                if len(ha_commands) == 0 and 'ha_commands' in st.session_state:
+                    ha_commands = st.session_state["ha_commands"]
+
+            ha_commands = st.data_editor(data=ha_commands, num_rows="dynamic", use_container_width=True)
+            st.session_state["ha_commands"] = ha_commands
+
+            if save_ha:
+                with open("user_multinet.json", "w") as multinet_commands:
+                    multinet_commands.write(json.dumps(st.session_state["ha_commands"]))
+                multinet_commands.close()
+
+                st.session_state["ha_commands"] = ha_commands

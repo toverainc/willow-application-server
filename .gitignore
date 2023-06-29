@@ -164,4 +164,5 @@ gen-tz.py
 static/
 tz.json
 user_config.json
+user_multinet.json
 user_nvs.json
