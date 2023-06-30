@@ -55,6 +55,8 @@ home, clients, configuration, multinet = st.tabs(["Home", "Clients", "Configurat
 with home:
     st.metric(label='Connected Clients', value=num_devices())
 
+    if len(user_config) == 0:
+        st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started.")
 
 with clients:
     devices = get_devices()
