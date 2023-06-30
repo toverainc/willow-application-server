@@ -1,9 +1,24 @@
 import json
-import pandas as pd
-import requests
 import streamlit as st
 
-from shared.was import *
+from shared.was import (
+    apply_config_host,
+    apply_nvs_host,
+    construct_url,
+    get_nvs,
+    ota,
+    get_config,
+    get_devices,
+    get_ha_commands_for_entity,
+    get_ha_entities,
+    get_tz,
+    merge_dict,
+    num_devices,
+    post_config,
+    post_nvs,
+    validate_config,
+    validate_nvs,
+)
 
 
 title = 'Willow Application Server'
@@ -25,7 +40,6 @@ with clients:
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
 
-
     btn_key = 0
     for idx, row in enumerate(devices):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
@@ -37,11 +51,14 @@ with clients:
         port.write(row['port'])
         user_agent.write(row['user_agent'])
 
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config", on_click=apply_config_host, type="primary")
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config",
+                       on_click=apply_config_host, type="primary")
         btn_key += 1
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS", on_click=apply_nvs_host, type="primary")
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS",
+                       on_click=apply_nvs_host, type="primary")
         btn_key += 1
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA", on_click=ota, type="primary")
+        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA",
+                       on_click=ota, type="primary")
         btn_key += 1
 
 
@@ -49,31 +66,30 @@ with configuration:
 
     try:
         user_config = get_config()
-    except:
+    except Exception:
         user_config = {}
 
     try:
         user_nvs = get_nvs()
-    except:
+    except Exception:
         user_nvs = {}
 
     try:
         with open("default_config.json", "r") as config_file:
             default_config = json.load(config_file)
         config_file.close()
-    except:
+    except Exception:
         default_config = {}
 
     try:
         with open("default_nvs.json", "r") as nvs_file:
             default_nvs = json.load(nvs_file)
         nvs_file.close()
-    except:
+    except Exception:
         default_nvs = {}
 
     config = merge_dict(default_config, user_config)
     nvs = merge_dict(default_nvs, user_nvs)
-
 
     expander_connectivity = st.expander(label='Connectivity')
     with expander_connectivity:
@@ -96,7 +112,7 @@ with configuration:
             if validate_nvs(nvs):
                 json_object = json.dumps(nvs, indent=2)
                 post_nvs(json_object, False)
-                st.write(f"NVS values saved")
+                st.write("NVS values saved")
                 st.json(nvs)
 
     expander_main = st.expander(label='Main settings')
@@ -121,7 +137,8 @@ with configuration:
         wake_words = {'hiesp': 'Hi ESP', 'alexa': 'Alexa', 'hilexin': 'Hi Lexin'}
         config["wake_word"] = st.selectbox(
             "Willow Wake Word",
-            wake_words, index=list(wake_words.keys()).index(config["wake_word"]), format_func=lambda x: wake_words.get(x))
+            wake_words, index=list(wake_words.keys()).index(config["wake_word"]),
+            format_func=lambda x: wake_words.get(x))
 
         command_endpoint_values = ('Home Assistant', 'openHAB', 'REST')
         config["command_endpoint"] = st.selectbox(
@@ -130,7 +147,8 @@ with configuration:
 
         if config["command_endpoint"] == "Home Assistant":
             config["hass_host"] = st.text_input("Home Assistant Host", value=config["hass_host"])
-            config["hass_port"] = st.number_input("Home Assistant Port", min_value=1, max_value=65535, value=config["hass_port"])
+            config["hass_port"] = st.number_input("Home Assistant Port", min_value=1, max_value=65535,
+                                                  value=config["hass_port"])
             config["hass_tls"] = st.checkbox('Home Assistant use TLS', value=config["hass_tls"])
             config["hass_token"] = st.text_input("Home Assistant Token", value=config["hass_token"])
 
@@ -143,14 +161,15 @@ with configuration:
 
             rest_auth_type_values = ('None', 'Basic', 'Header')
             config["rest_auth_type"] = st.selectbox(
-            "REST Authentication Method",
-            rest_auth_type_values, rest_auth_type_values.index(config["rest_auth_type"]))
+                "REST Authentication Method",
+                rest_auth_type_values, rest_auth_type_values.index(config["rest_auth_type"]))
 
             if config["rest_auth_type"] == "Basic":
                 config["rest_auth_user"] = st.text_input("REST Basic Username", value=config["rest_auth_user"])
                 config["rest_auth_pass"] = st.text_input("REST Basic Password", value=config["rest_auth_pass"])
             elif config["rest_auth_type"] == "Header":
-                config["rest_auth_header"] = st.text_input("REST Authentication Header", value=config["rest_auth_header"])
+                config["rest_auth_header"] = st.text_input("REST Authentication Header",
+                                                           value=config["rest_auth_header"])
 
         tzdata = get_tz()
         tzkeys = list(tzdata.keys())
@@ -170,49 +189,44 @@ with configuration:
             ntp_config_values, ntp_config_values.index(config["ntp_config"]))
 
         if config["ntp_config"] == "Host":
-            config["ntp_host"] = st.text_input("NTP Host",value=config["ntp_host"])
-
+            config["ntp_host"] = st.text_input("NTP Host", value=config["ntp_host"])
 
         advanced = st.checkbox(label='Show advanced settings')
         if advanced:
-
             audio_codecs = ('AMR-WB', 'PCM', 'WAV')
             config["audio_codec"] = st.selectbox("Audio codec to use for streaming to WIS",
-                    audio_codecs, audio_codecs.index(config["audio_codec"])
-            )
+                                                 audio_codecs, audio_codecs.index(config["audio_codec"]))
 
+            vad_help = "Higher modes are more aggressive and are more restrictive in detecting speech"
             vad_modes = (0, 1, 2, 3, 4)
-            config["vad_mode"] = st.selectbox("Voice Activity Detection Mode",
-                    vad_modes, vad_modes.index(config["vad_mode"]),
-                    help='''Higher modes are more aggressive and are more restrictive in detecting speech'''
-            )
-
+            config["vad_mode"] = st.selectbox("Voice Activity Detection Mode", vad_modes,
+                                              vad_modes.index(config["vad_mode"]), help=vad_help)
+            wake_help = '''The probability of being recognized as a wake word increases with increasing mode.
+                        As a consequence, a higher mode will result in more false positives.'''
             wake_modes = ('1CH_90', '1CH_95', '2CH_90', '2CH_95', '3CH_90', '3CH_95')
-            config["wake_mode"] = st.selectbox("Wake Word Recognition Mode",
-                    wake_modes, wake_modes.index(config["wake_mode"]),
-                    help='''The probability of being recognized as a wake word increases with increasing mode.
-                    As a consequence, a higher mode will result in more false positives.'''
-            )
+            config["wake_mode"] = st.selectbox("Wake Word Recognition Mode", wake_modes,
+                                               wake_modes.index(config["wake_mode"]), help=wake_help)
 
-            config["mic_gain"] = st.slider("Microphone Gain", 0, 14, value=config["mic_gain"],
-                    help='''0dB (0), 3dB (1), 6dB (2), 9dB (3), 12dB (4), 15dB (5), 18dB (6), 21dB (7),
-                    24dB (8), 27dB (9), 30dB (10), 33dB (11), 34.5dB (12), 36dB (13), 37.5 (dB)'''
-            )
+            mic_gain_help = '''0dB (0), 3dB (1), 6dB (2), 9dB (3), 12dB (4), 15dB (5), 18dB (6), 21dB (7),
+                          24dB (8), 27dB (9), 30dB (10), 33dB (11), 34.5dB (12), 36dB (13), 37.5 (dB)'''
+            config["mic_gain"] = st.slider("Microphone Gain", 0, 14, value=config["mic_gain"], help=mic_gain_help)
 
+            record_buffer_help = '''Custom record buffer for timing and latency.
+                                 Users with a local WIS instance may want to try setting lower (10 or so)'''
             config["record_buffer"] = st.slider("Record Buffer", 1, 16, value=config["record_buffer"],
-                    help='''Custom record buffer for timing and latency.
-                    Users with a local WIS instance may want to try setting lower (10 or so)'''
-            )
+                                                help=record_buffer_help)
 
+            stream_timeout_help = '''Stop speech recognition after N seconds after wake event
+                                  to avoid endless stream when VAD END does not trigger.'''
             config["stream_timeout"] = st.slider("Maximum speech duration", 1, 30, value=config["stream_timeout"],
-                    help='Stop speech recognition after N seconds after wake event to avoid endless stream when VAD END does not trigger.'
-            )
+                                                 help=stream_timeout_help)
 
+            vad_timeout_help = '''VAD (Voice Activity Detection) timeout in ms.
+                               How long to wait after end of speech to trigger end of VAD.
+                               Improves response times but can also clip speech if you do not talk fast enough.
+                               Allows for entering 1 - 1000 ms but if you go lower than 50 or so good luck...'''
             config["vad_timeout"] = st.slider("VAD Timeout", 1, 1000, value=config["vad_timeout"],
-                    help='''VAD (Voice Activity Detection) timeout in ms - How long to wait after end of speech to trigger end of VAD.
-                    Improves response times but can also clip speech if you do not talk fast enough.
-                    Allows for entering 1 - 1000 ms but if you go lower than 50 or so good luck...'''
-            )
+                                              help=vad_timeout_help)
 
         skip_connectivity_checks = st.checkbox(key='skip_connectivity_checks', label='Skip connectivity checks')
 
@@ -222,7 +236,7 @@ with configuration:
             if validate_config(config):
                 json_object = json.dumps(config, indent=2)
                 post_config(json_object, False)
-                st.write(f"Configuration Saved:")
+                st.write("Configuration Saved:")
                 st.json(config)
 
         config_apply = st.button("Save and Apply")
@@ -230,7 +244,7 @@ with configuration:
             if validate_config(config):
                 json_object = json.dumps(config, indent=2)
                 post_config(json_object, True)
-                st.write(f"Configuration Saved:")
+                st.write("Configuration Saved:")
                 st.json(config)
 
 with multinet:
@@ -259,7 +273,7 @@ with multinet:
                 ha_entities = get_ha_entities(ha_url, config["hass_token"])
 
                 for entity in ha_entities:
-                    if 'friendly_name' in  entity['attributes']:
+                    if 'friendly_name' in entity['attributes']:
                         entity_type = entity['entity_id'].split('.')[0]
                         if entity_type in st.session_state and st.session_state[entity_type]:
                             friendly_name = entity['attributes']['friendly_name']

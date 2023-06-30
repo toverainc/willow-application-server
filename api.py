@@ -1,4 +1,5 @@
-import json, os
+import json
+import os
 import subprocess
 import threading
 from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
@@ -14,6 +15,7 @@ app = FastAPI()
 log = getLogger("WAS")
 websocket = WebSocket
 
+
 def start_ui():
     def run(job):
         proc = subprocess.Popen(job)
@@ -25,6 +27,7 @@ def start_ui():
     # server thread will remain active as long as FastAPI thread is running
     thread = threading.Thread(name='WAS UI', target=run, args=(job,), daemon=True)
     thread.start()
+
 
 class Client:
     def __init__(self, ua):
@@ -83,6 +86,7 @@ def build_msg(config, container):
     except Exception as e:
         log.error(f"failed to build config message: {e}")
 
+
 def get_config_ws():
     config = None
     try:
@@ -94,15 +98,17 @@ def get_config_ws():
         config_file.close()
         return config
 
+
 def get_json_from_file(path):
     try:
         with open(path, "r") as file:
             data = json.load(file)
         file.close()
-    except:
+    except Exception:
         data = {}
 
     return JSONResponse(content=data)
+
 
 async def post_config(request, apply=False):
     data = await request.json()
@@ -116,7 +122,7 @@ async def post_config(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"failed to apply config to {data['hostname']}")
+            log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
         save_json_to_file("user_config.json", data)
@@ -125,6 +131,7 @@ async def post_config(request, apply=False):
         if apply:
             await connmgr.broadcast(websocket, msg)
         return "Success"
+
 
 async def post_nvs(request, apply=False):
     data = await request.json()
@@ -138,7 +145,7 @@ async def post_nvs(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"failed to apply config to {data['hostname']}")
+            log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
         save_json_to_file("user_nvs.json", data)
@@ -147,6 +154,7 @@ async def post_nvs(request, apply=False):
         if apply:
             await connmgr.broadcast(websocket, msg)
         return "Success"
+
 
 def save_json_to_file(path, content):
     with open(path, "w") as config_file:
@@ -158,9 +166,11 @@ def save_json_to_file(path, content):
 async def startup_event():
     start_ui()
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @app.get("/api/clients")
 async def get_clients():
@@ -176,9 +186,11 @@ async def get_clients():
 
     return JSONResponse(content=clients)
 
+
 @app.get("/api/config")
 async def get_config():
     return get_json_from_file("user_config.json")
+
 
 @app.get("/api/ha_token")
 async def get_ha_token():
@@ -200,42 +212,52 @@ async def get_ha_url():
     except Exception as e:
         return str(e)
 
+
 @app.get("/api/multinet")
 async def get_multinet():
     return get_json_from_file("user_multinet.json")
+
 
 @app.get("/api/nvs")
 async def get_nvs():
     return get_json_from_file("user_nvs.json")
 
+
 @app.post("/api/config/apply")
 async def apply_config(request: Request):
     await post_config(request, True)
+
 
 @app.post("/api/config/save")
 async def save_config(request: Request):
     await post_config(request, False)
 
+
 @app.post("/api/nvs/apply")
 async def apply_nvs(request: Request):
     await post_nvs(request, True)
+
 
 @app.post("/api/nvs/save")
 async def save_nvs(request: Request):
     await post_nvs(request, False)
 
+
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):
     log.error(f"body: {body} {type(body)}")
-    msg = json.dumps({'cmd':'ota_start', 'ota_url': os.environ['OTA_URL']})
+    msg = json.dumps({'cmd': 'ota_start', 'ota_url': os.environ['OTA_URL']})
     try:
         ws = connmgr.get_client_by_hostname(body["hostname"])
         await ws.send_text(msg)
     except Exception as e:
-        log.error("failed to trigger OTA")
+        log.error(f"failed to trigger OTA ({e})")
+
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: websocket, user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
+async def websocket_endpoint(
+        websocket: websocket,
+        user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
     client = Client(user_agent)
 
     await connmgr.accept(websocket, client)
