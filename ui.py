@@ -35,7 +35,7 @@ with home:
 with clients:
     devices = get_devices()
     cols = st.columns(6)
-    fields = ["Hostname", "Hardware Type", "IP", "Port", "User Agent", "Actions"]
+    fields = ["Hostname", "Hardware Type", "IP", "Port", "Version", "Actions"]
 
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
@@ -44,12 +44,12 @@ with clients:
     for idx, row in enumerate(devices):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
             continue
-        hostname, hw_type, ip, port, user_agent, actions = st.columns(6)
+        hostname, hw_type, ip, port, version, actions = st.columns(6)
         hostname.write(row['hostname'])
         hw_type.write(row['hw_type'])
         ip.write(row['ip'])
         port.write(row['port'])
-        user_agent.write(row['user_agent'])
+        version.write(row['user_agent'].replace('Willow/', ''))
 
         actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config",
                        on_click=apply_config_host, type="primary")
