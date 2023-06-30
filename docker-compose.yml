@@ -4,8 +4,8 @@ services:
   was:
     restart: unless-stopped
     image: ${IMAGE}:${TAG}
-    env_file:
-      - .env
+    environment:
+      - WAS_IP
     #build:
     #  dockerfile: Dockerfile
     ports:
