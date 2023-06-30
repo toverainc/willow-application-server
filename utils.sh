@@ -37,6 +37,20 @@ LISTEN_IP=${LISTEN_IP:-0.0.0.0}
 TAG=${TAG:-latest}
 NAME=${NAME:was}
 
+# Reachable WAS IP for the "default" interface
+WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
+
+TAG=${TAG:-latest}
+NAME=${NAME:was}
+
+set +a
+
+if [ -z "$WAS_IP" ]; then
+    echo "Could not determine WAS IP address - you will need to add it to .env"
+else
+    echo "WAS IP is $WAS_IP"
+fi
+
 set +a
 
 dep_check() {
