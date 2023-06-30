@@ -1,10 +1,12 @@
 import json
 import streamlit as st
 
+from os import environ
 from shared.was import (
     apply_config_host,
     apply_nvs_host,
     construct_url,
+    get_ip,
     get_nvs,
     ota,
     get_config,
@@ -89,6 +91,19 @@ with clients:
 
 
 with configuration:
+    was_url = ""
+    if len(user_nvs) == 0:
+        try:
+            if environ.get('WAS_IP') is not None:
+                was_url = f"ws://{environ['WAS_IP']}:8502/ws"
+            else:
+                was_url = f"ws://{get_ip()}:8502/ws"
+            st.info("We tried to guess your WAS URL. Please make sure your Willow devices can reach this URL!")
+        except Exception:
+            st.info("We couldn't guess your WAS URL. Please make sure your Willow devices can reach the URL you enter!")
+    else:
+        was_url = user_nvs["WAS"]["URL"]
+
 
     config = merge_dict(default_config, user_config)
     nvs = merge_dict(default_nvs, user_nvs)
@@ -96,7 +111,7 @@ with configuration:
     expander_connectivity = st.expander(label='Connectivity')
     with expander_connectivity:
 
-        nvs["WAS"]["URL"] = st.text_input("Willow Application Server URL", value=nvs["WAS"]["URL"])
+        nvs["WAS"]["URL"] = st.text_input("Willow Application Server URL", value=was_url)
         nvs["WIFI"]["SSID"] = st.text_input("WiFi SSID", value=nvs["WIFI"]["SSID"])
         nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"])
 
