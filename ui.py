@@ -21,6 +21,30 @@ from shared.was import (
 )
 
 
+try:
+    user_config = get_config()
+except Exception:
+    user_config = {}
+
+try:
+    user_nvs = get_nvs()
+except Exception:
+    user_nvs = {}
+
+try:
+    with open("default_config.json", "r") as config_file:
+        default_config = json.load(config_file)
+    config_file.close()
+except Exception:
+    default_config = {}
+
+try:
+    with open("default_nvs.json", "r") as nvs_file:
+        default_nvs = json.load(nvs_file)
+    nvs_file.close()
+except Exception:
+    default_nvs = {}
+
 title = 'Willow Application Server'
 
 st.set_page_config(page_title=title, layout='wide')
@@ -63,30 +87,6 @@ with clients:
 
 
 with configuration:
-
-    try:
-        user_config = get_config()
-    except Exception:
-        user_config = {}
-
-    try:
-        user_nvs = get_nvs()
-    except Exception:
-        user_nvs = {}
-
-    try:
-        with open("default_config.json", "r") as config_file:
-            default_config = json.load(config_file)
-        config_file.close()
-    except Exception:
-        default_config = {}
-
-    try:
-        with open("default_nvs.json", "r") as nvs_file:
-            default_nvs = json.load(nvs_file)
-        nvs_file.close()
-    except Exception:
-        default_nvs = {}
 
     config = merge_dict(default_config, user_config)
     nvs = merge_dict(default_nvs, user_nvs)
