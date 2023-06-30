@@ -104,6 +104,9 @@ with configuration:
     else:
         was_url = user_nvs["WAS"]["URL"]
 
+    if len(user_config) > 0 and len(user_nvs) > 0:
+        st.info(f"Ready to flash. Go to "
+                f"[https://flash.heywillow.io](https://flash.heywillow.io?wasURL={was_url})")
 
     config = merge_dict(default_config, user_config)
     nvs = merge_dict(default_nvs, user_nvs)
@@ -123,6 +126,7 @@ with configuration:
                 post_nvs(json_object, True)
                 st.write("NVS values saved")
                 st.json(nvs)
+                st.experimental_rerun()
 
         nvs_save = st.button("Save", key="btn_nvs_save")
         if nvs_save:
@@ -131,6 +135,7 @@ with configuration:
                 post_nvs(json_object, False)
                 st.write("NVS values saved")
                 st.json(nvs)
+                st.experimental_rerun()
 
     expander_main = st.expander(label='Main settings')
     with expander_main:
@@ -255,6 +260,7 @@ with configuration:
                 post_config(json_object, False)
                 st.write("Configuration Saved:")
                 st.json(config)
+                st.experimental_rerun()
 
         config_apply = st.button("Save and Apply")
         if config_apply:
@@ -263,6 +269,7 @@ with configuration:
                 post_config(json_object, True)
                 st.write("Configuration Saved:")
                 st.json(config)
+                st.experimental_rerun()
 
 with multinet:
     if config["speech_rec_mode"] != "Multinet":
