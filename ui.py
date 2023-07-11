@@ -68,7 +68,6 @@ with clients:
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
 
-    btn_key = 0
     for idx, row in enumerate(devices):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
             continue
@@ -79,15 +78,12 @@ with clients:
         port.write(row['port'])
         version.write(row['user_agent'].replace('Willow/', ''))
 
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply Config",
+        actions.button(key=f"btn_apply_cfg_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply Config",
                        on_click=apply_config_host, type="primary")
-        btn_key += 1
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="Apply NVS",
+        actions.button(key=f"btn_apply_nvs_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply NVS",
                        on_click=apply_nvs_host, type="primary")
-        btn_key += 1
-        actions.button(key=btn_key, kwargs=dict(hostname=row['hostname']), label="OTA",
+        actions.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname']), label="OTA",
                        on_click=ota, type="primary")
-        btn_key += 1
 
 
 with configuration:
