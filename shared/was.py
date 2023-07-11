@@ -5,6 +5,7 @@ import socket
 import streamlit as st
 
 from num2words import num2words
+from websockets.sync.client import connect
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
@@ -149,11 +150,16 @@ def post_nvs(json, apply=False):
     requests.post(url, json=json)
 
 
-def test_url(url, error_msg):
+def test_url(url, error_msg, ws=False):
     ok = True
     try:
-        requests.get(url)
-        ok = True
+        if ws:
+            conn = connect(url)
+            conn.close()
+            ok = True
+        else:
+            requests.get(url)
+            ok = True
     except Exception:
         ok = False
 
