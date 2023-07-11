@@ -10,7 +10,10 @@ from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 
-from shared.was import construct_url
+from shared.was import (
+    construct_url,
+    get_releases_gh,
+)
 
 app = FastAPI()
 log = getLogger("WAS")
@@ -86,6 +89,7 @@ class ConnMgr:
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 connmgr = ConnMgr()
+releases = get_releases_gh()
 
 
 def build_msg(config, container):
@@ -231,6 +235,13 @@ async def get_multinet():
 @app.get("/api/nvs")
 async def get_nvs():
     return get_json_from_file("storage/user_nvs.json")
+
+
+@app.get("/api/releases/")
+async def api_get_releases(refresh=False):
+    if refresh:
+        releases = get_releases_gh()
+    return releases
 
 
 @app.post("/api/config/apply")

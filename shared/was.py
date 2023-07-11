@@ -113,7 +113,7 @@ def get_nvs():
     return json
 
 
-def get_releases():
+def get_releases_gh():
     releases = requests.get(URL_GH_RELEASES)
     return releases.json()
 
