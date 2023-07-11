@@ -7,6 +7,9 @@ import streamlit as st
 from num2words import num2words
 from websockets.sync.client import connect
 
+
+URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
+
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 
@@ -108,6 +111,11 @@ def get_nvs():
     response = requests.get(URL_WAS_API_NVS)
     json = response.json()
     return json
+
+
+def get_releases():
+    releases = requests.get(URL_GH_RELEASES)
+    return releases.json()
 
 
 def get_tz():
