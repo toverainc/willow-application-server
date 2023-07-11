@@ -118,6 +118,8 @@ with configuration:
         nvs["WIFI"]["SSID"] = st.text_input("WiFi SSID", value=nvs["WIFI"]["SSID"])
         nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"])
 
+        skip_connectivity_checks_nvs = st.checkbox(key='skip_connectivity_checks_nvs', label='Skip connectivity checks')
+
         # NVS form submit button
         nvs_apply = st.button("Save and Apply", key="btn_nvs")
         if nvs_apply:

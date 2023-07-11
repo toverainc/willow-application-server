@@ -215,6 +215,10 @@ def validate_nvs(nvs):
         ok = False
     if not validate_wifi_ssid(nvs['WIFI']['SSID']):
         ok = False
+    if not st.session_state['skip_connectivity_checks_nvs']:
+        if not test_url(nvs['WAS']['URL'],
+                        f":red[Unable to open WebSocket connection to WAS URL on {nvs['WAS']['URL']}]", True):
+            ok = False
     return ok
 
 
