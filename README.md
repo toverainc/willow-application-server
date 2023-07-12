@@ -8,7 +8,7 @@ All you have to do is run Willow Application Server and connect to it. From ther
 ### Running WAS
 
 ```
-docker run --detach --env=OTA_URL="http://my_was_host:8502/static/ota.bin" --name=willow-application-server --pull=always --network=host --restart=unless-stopped --volume=was-storage:/app/storage ghcr.io/toverainc/willow-application-server:main
+docker run --detach --name=willow-application-server --pull=always --network=host --restart=unless-stopped --volume=was-storage:/app/storage ghcr.io/toverainc/willow-application-server:main
 ```
 
 ### Building WAS
@@ -18,14 +18,6 @@ git clone https://github.com/toverainc/willow-application-server.git && cd willo
 ./utils.sh build
 ```
 
-### Configure
-Edit/create ```.env``` and populate the ```OTA_URL``` with the hostname/IP address of the WAS instance that is reachable from Willow devices:
-
-```
-cat .env 
-OTA_URL="http://my_was_host:8502/static/ota.bin"
-```
-
 ### Start
 ```./utils.sh run```
 
@@ -33,4 +25,4 @@ OTA_URL="http://my_was_host:8502/static/ota.bin"
 Visit ```http://my_was_host:8501``` in your browser.
 
 ## OTA
-For now you will need to copy ```willow.bin``` from ```build/willow.bin``` to the OTA_URL set above. We are working on manifest support.
+We list releases with OTA assets. Select the wanted release and click the OTA button. If the release is not already cached in WAS, WAS will download the binary from Github and cache it, then instruct Willow to start OTA with the URL of the cached asset. This makes it possible to run Willow in an isolated VLAN without Internet access.

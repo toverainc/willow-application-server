@@ -14,6 +14,7 @@ URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
+URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
 
 URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
 URL_WAS_API_CONFIG_APPLY = "http://localhost:8502/api/config/apply"
@@ -179,8 +180,10 @@ def num_devices():
     return (len(get_devices()))
 
 
-def ota(hostname):
-    requests.post(URL_WAS_API_OTA, json={'hostname': hostname})
+def ota(hostname, info, version):
+    info['version'] = version
+    requests.post(URL_WAS_API_RELEASE_CACHE, json=info)
+    requests.post(URL_WAS_API_OTA, json={'hostname': hostname, 'ota_url': info['was_url']})
 
 
 def post_config(json, apply=False):

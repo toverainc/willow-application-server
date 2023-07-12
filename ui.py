@@ -13,6 +13,7 @@ from shared.was import (
     get_devices,
     get_ha_commands_for_entity,
     get_ha_entities,
+    get_releases,
     get_tz,
     merge_dict,
     num_devices,
@@ -46,6 +47,10 @@ try:
     nvs_file.close()
 except Exception:
     default_nvs = {}
+
+releases = {}
+if len(user_nvs) != 0:
+    releases = get_releases(user_nvs["WAS"]["URL"])
 
 title = 'Willow Application Server'
 
@@ -82,9 +87,12 @@ with clients:
                        on_click=apply_config_host, type="primary")
         actions.button(key=f"btn_apply_nvs_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply NVS",
                        on_click=apply_nvs_host, type="primary")
-        actions.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname']), label="OTA",
-                       on_click=ota, type="primary")
 
+        if len(releases) > 0:
+            actions.selectbox("Select release to flash", releases, key=f"sb_ota_{idx}")
+            actions.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname'],
+                           info=releases[st.session_state[f"sb_ota_{idx}"]][row['hw_type']],
+                           version=st.session_state[f"sb_ota_{idx}"]), label="OTA", on_click=ota, type="primary")
 
 with configuration:
     was_url = ""
