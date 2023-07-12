@@ -13,6 +13,7 @@ URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
+URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
 
 URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
 URL_WAS_API_CONFIG_APPLY = "http://localhost:8502/api/config/apply"
@@ -117,6 +118,45 @@ def get_nvs():
 def get_releases_gh():
     releases = requests.get(URL_GH_RELEASES)
     return releases.json()
+
+
+def get_releases(was_url, refresh=False):
+    gh_releases = requests.get(f"{URL_WAS_API_RELEASES}/?refresh={refresh}").json()
+    releases = {}
+    # Github might be rate-limiting so use try to avoid KeyError
+    try:
+        for release in gh_releases:
+            tag_name = release['tag_name']
+            releases[tag_name] = {}
+            for asset in release['assets']:
+                name = asset['name']
+                if name == 'willow-ota-ESP32_S3_BOX.bin':
+                    releases[tag_name]['ESP32-S3-BOX'] = {}
+                    releases[tag_name]['ESP32-S3-BOX']['file_name'] = name
+                    releases[tag_name]['ESP32-S3-BOX']['gh_url'] = asset['browser_download_url']
+                    releases[tag_name]['ESP32-S3-BOX']['size'] = asset['size']
+                    releases[tag_name]['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, tag_name, name)
+                elif name == 'willow-ota-ESP32_S3_BOX_LITE.bin':
+                    releases[tag_name]['ESP32-S3-BOX-Lite'] = {}
+                    releases[tag_name]['ESP32-S3-BOX-Lite']['file_name'] = name
+                    releases[tag_name]['ESP32-S3-BOX-Lite']['gh_url'] = asset['browser_download_url']
+                    releases[tag_name]['ESP32-S3-BOX-Lite']['size'] = asset['size']
+                    releases[tag_name]['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, tag_name, name)
+            # avoid releases without OTA assets
+            if len(releases[tag_name]) == 0:
+                del releases[tag_name]
+    except Exception:
+        pass
+
+    return releases
+
+
+def get_release_url(was_url, version, filename):
+    url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
+    host = url_parts.group(1)
+    port = url_parts.group(2)
+    url = f"http://{host}:{port}/ota/{version}/{filename}"
+    return url
 
 
 def get_tz():
