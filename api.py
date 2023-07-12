@@ -2,10 +2,11 @@ import json
 import os
 import subprocess
 import threading
-from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSocketException, Request
+from fastapi import Body, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
+from requests import get
 from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
@@ -266,6 +267,31 @@ async def apply_nvs(request: Request):
 @app.post("/api/nvs/save")
 async def save_nvs(request: Request):
     await post_nvs(request, False)
+
+
+@app.post("/api/release/cache")
+async def post_release_cache(request: Request):
+    data = await request.json()
+
+    dir = f"./{DIR_OTA}/{data['version']}"
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+
+    path = f"{dir}/{data['file_name']}"
+    if os.path.exists(path):
+        if os.path.getsize(path) == data['size']:
+            return
+        else:
+            os.remove(path)
+
+    resp = get(data['gh_url'])
+    if resp.status_code == 200:
+        with open(path, "wb") as fw:
+            fw.write(resp.content)
+        fw.close()
+        return
+    else:
+        raise HTTPException(status_code=resp.status_code)
 
 
 @app.post("/api/ota")
