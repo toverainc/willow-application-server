@@ -11,4 +11,3 @@ services:
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
-    command: ./entrypoint.sh
