@@ -1,3 +1,5 @@
+volumes:
+  was-storage:
 services:
   was:
     restart: unless-stopped
@@ -11,3 +13,4 @@ services:
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
+      - was-storage:/app/storage

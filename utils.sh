@@ -63,7 +63,7 @@ gen-tz() {
 }
 
 shell() {
-    docker run -it -v $WAS_DIR:/app -v $WAS_DIR/cache:/root/.cache "$IMAGE":"$TAG" \
+    docker run -it -v $WAS_DIR:/app -v $WAS_DIR/cache:/root/.cache -v willow-application-server_was-storage:/app/storage "$IMAGE":"$TAG" \
         /usr/bin/env bash
 }
 
