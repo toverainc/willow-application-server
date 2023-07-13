@@ -1,6 +1,7 @@
 import json
 import re
 import requests
+import socket
 import streamlit as st
 
 from num2words import num2words
@@ -92,6 +93,14 @@ def get_ha_entities(url, token):
     data = response.json()
     data.sort(key=lambda x: x['entity_id'])
     return data
+
+
+def get_ip():
+    sk = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sk.connect(("1.1.1.1", 53))
+    ip = sk.getsockname()[0]
+    sk.close()
+    return ip
 
 
 def get_nvs():
