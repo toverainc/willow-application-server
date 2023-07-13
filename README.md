@@ -11,7 +11,13 @@ You will need to (one-time) configure, build, and flash Willow from the ```featu
 ./utils.sh flash-dist
 ```
 
-### WAS Installation
+### Running WAS
+
+```
+docker run --detach --env=OTA_URL="http://my_was_host:8502/static/ota.bin" --name=willow-application-server --pull=always --network=host --restart=unless-stopped --volume=was-storage:/app/storage ghcr.io/toverainc/willow-application-server:main
+```
+
+### Building WAS
 ```
 git clone https://github.com/toverainc/willow-application-server.git && cd willow-application-server
 
