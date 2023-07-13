@@ -282,7 +282,7 @@ with multinet:
             else:
                 if not save_ha:
                     try:
-                        multinet_commands_file = open("user_multinet.json", "r")
+                        multinet_commands_file = open("storage/user_multinet.json", "r")
                         ha_commands = json.load(multinet_commands_file)
                     except Exception:
                         pass
@@ -294,7 +294,7 @@ with multinet:
             st.session_state["ha_commands"] = ha_commands
 
             if save_ha:
-                with open("user_multinet.json", "w") as multinet_commands:
+                with open("storage/user_multinet.json", "w") as multinet_commands:
                     multinet_commands.write(json.dumps(st.session_state["ha_commands"]))
                 multinet_commands.close()
 

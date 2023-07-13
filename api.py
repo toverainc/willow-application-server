@@ -6,6 +6,7 @@ from fastapi import Body, FastAPI, Header, WebSocket, WebSocketDisconnect, WebSo
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from logging import getLogger
+from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 
@@ -14,6 +15,14 @@ from shared.was import construct_url
 app = FastAPI()
 log = getLogger("WAS")
 websocket = WebSocket
+
+
+def migrate_user_files():
+    for user_file in ['user_config.json', 'user_multinet.json', 'user_nvs.json']:
+        if os.path.isfile(user_file):
+            dest = f"storage/{user_file}"
+            if not os.path.isfile(dest):
+                move(user_file, dest)
 
 
 def start_ui():
@@ -90,7 +99,7 @@ def build_msg(config, container):
 def get_config_ws():
     config = None
     try:
-        with open("user_config.json", "r") as config_file:
+        with open("storage/user_config.json", "r") as config_file:
             config = config_file.read()
     except Exception as e:
         log.error(f"failed to get config: {e}")
@@ -125,7 +134,7 @@ async def post_config(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
-        save_json_to_file("user_config.json", data)
+        save_json_to_file("storage/user_config.json", data)
         msg = build_msg(data, "config")
         log.info(str(msg))
         if apply:
@@ -148,7 +157,7 @@ async def post_nvs(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
-        save_json_to_file("user_nvs.json", data)
+        save_json_to_file("storage/user_nvs.json", data)
         msg = build_msg(data, "nvs")
         log.info(str(msg))
         if apply:
@@ -164,6 +173,7 @@ def save_json_to_file(path, content):
 
 @app.on_event("startup")
 async def startup_event():
+    migrate_user_files()
     start_ui()
 
 
@@ -189,7 +199,7 @@ async def get_clients():
 
 @app.get("/api/config")
 async def get_config():
-    return get_json_from_file("user_config.json")
+    return get_json_from_file("storage/user_config.json")
 
 
 @app.get("/api/ha_token")
@@ -215,12 +225,12 @@ async def get_ha_url():
 
 @app.get("/api/multinet")
 async def get_multinet():
-    return get_json_from_file("user_multinet.json")
+    return get_json_from_file("storage/user_multinet.json")
 
 
 @app.get("/api/nvs")
 async def get_nvs():
-    return get_json_from_file("user_nvs.json")
+    return get_json_from_file("storage/user_nvs.json")
 
 
 @app.post("/api/config/apply")
