@@ -10,3 +10,5 @@ COPY . .
 
 EXPOSE 8501
 EXPOSE 8502
+
+CMD /app/entrypoint.sh
