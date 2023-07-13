@@ -18,6 +18,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
+      - name: get gen-tz.py
+        run: curl --output /tmp/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/4b9caa3066434b015a99cadb74050fd46b7cc12b/gen-tz.py
+
+      - name: generate tz.json
+        run: python3 /tmp/gen-tz.py --json > tz.json
+
       - name: login to ghcr.io
         uses: docker/login-action@v2
         with:
