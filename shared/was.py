@@ -20,6 +20,7 @@ STORAGE_USER_NVS = 'storage/user_nvs.json'
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_DEVICE = 'http://localhost:8502/api/device'
+URL_WAS_API_DEVICES = 'http://localhost:8502/api/devices'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
@@ -77,6 +78,11 @@ def get_config():
     response = requests.get(URL_WAS_API_CONFIG)
     json = response.json()
     return json
+
+
+def get_devices():
+    response = requests.get(URL_WAS_API_DEVICES)
+    return response.json()
 
 
 def get_ha_commands_for_entity(entity):
