@@ -50,6 +50,7 @@ class Client:
     def __init__(self, ua):
         self.hostname = "unknown"
         self.hw_type = "unknown"
+        self.mac_addr = []
         self.ua = ua
 
     def set_hostname(self, hostname):
@@ -57,6 +58,9 @@ class Client:
 
     def set_hw_type(self, hw_type):
         self.hw_type = hw_type
+
+    def set_mac_addr(self, mac_addr):
+        self.mac_addr = mac_addr
 
 
 class ConnMgr:
@@ -90,6 +94,8 @@ class ConnMgr:
             self.connected_clients[ws].set_hostname(value)
         elif key == "hw_type":
             self.connected_clients[ws].set_hw_type(value)
+        elif key == "mac_addr":
+            self.connected_clients[ws].set_mac_addr(value)
 
 
 if not os.path.isdir(DIR_OTA):
@@ -201,6 +207,7 @@ async def get_clients():
         clients.append({
             'hostname': client.hostname,
             'hw_type': client.hw_type,
+            'mac_addr': client.mac_addr,
             'ip': ws.client.host,
             'port': ws.client.port,
             'user_agent': client.ua
@@ -335,7 +342,8 @@ async def websocket_endpoint(
                     connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
                 if "hw_type" in msg["hello"]:
                     connmgr.update_client(websocket, "hw_type", msg["hello"]["hw_type"])
-
+                if "mac_addr" in msg["hello"]:
+                    connmgr.update_client(websocket, "mac_addr", msg["hello"]["mac_addr"])
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
