@@ -4,6 +4,7 @@ import streamlit as st
 from copy import deepcopy
 from os import environ
 from shared.was import (
+    STORAGE_USER_MULTINET,
     apply_config_host,
     apply_nvs_host,
     construct_url,
@@ -336,7 +337,7 @@ with multinet:
             else:
                 if not save_ha:
                     try:
-                        multinet_commands_file = open("storage/user_multinet.json", "r")
+                        multinet_commands_file = open(STORAGE_USER_MULTINET, "r")
                         ha_commands = json.load(multinet_commands_file)
                     except Exception:
                         pass
@@ -348,7 +349,7 @@ with multinet:
             st.session_state["ha_commands"] = ha_commands
 
             if save_ha:
-                with open("storage/user_multinet.json", "w") as multinet_commands:
+                with open(STORAGE_USER_MULTINET, "w") as multinet_commands:
                     multinet_commands.write(json.dumps(st.session_state["ha_commands"]))
                 multinet_commands.close()
 
