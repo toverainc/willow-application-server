@@ -13,6 +13,7 @@ DIR_OTA = 'storage/ota'
 URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
 URL_GH_RELEASES_LATEST = 'https://worker.heywillow.io/releases/latest'
 
+STORAGE_DEVICES = 'storage/devices.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
 STORAGE_USER_MULTINET = 'storage/user_multinet.json'
 STORAGE_USER_NVS = 'storage/user_nvs.json'
