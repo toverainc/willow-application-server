@@ -67,14 +67,14 @@ def delete_release(**kwargs):
     requests.post(URL_WAS_API_RELEASE_DELETE, json=data)
 
 
-def get_config():
-    response = requests.get(URL_WAS_API_CONFIG)
+def get_clients():
+    response = requests.get(URL_WAS_API_CLIENTS)
     json = response.json()
     return json
 
 
-def get_devices():
-    response = requests.get(URL_WAS_API_CLIENTS)
+def get_config():
+    response = requests.get(URL_WAS_API_CONFIG)
     json = response.json()
     return json
 
@@ -237,8 +237,8 @@ def merge_dict(dict_1, dict_2):
     return result
 
 
-def num_devices():
-    return (len(get_devices()))
+def num_clients():
+    return (len(get_clients()))
 
 
 def ota(hostname, info, version):
