@@ -6,6 +6,7 @@ services:
     image: ${IMAGE}:${TAG}
     environment:
       - WAS_IP
+      - OTA_URL
     #build:
     #  dockerfile: Dockerfile
     ports:
