@@ -19,6 +19,7 @@ STORAGE_USER_MULTINET = 'storage/user_multinet.json'
 STORAGE_USER_NVS = 'storage/user_nvs.json'
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
+URL_WAS_API_DEVICE = 'http://localhost:8502/api/device'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
@@ -253,6 +254,10 @@ def post_config(json, apply=False):
     else:
         url = URL_WAS_API_CONFIG_SAVE
     requests.post(url, json=json)
+
+
+def post_device(data):
+    requests.post(URL_WAS_API_DEVICE, json=data)
 
 
 def post_nvs(json, apply=False):
