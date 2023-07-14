@@ -11,6 +11,7 @@ from websockets.sync.client import connect
 DIR_OTA = 'storage/ota'
 
 URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
+URL_GH_RELEASES_LATEST = 'https://worker.heywillow.io/releases/latest'
 
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
@@ -123,6 +124,15 @@ def get_nvs():
     response = requests.get(URL_WAS_API_NVS)
     json = response.json()
     return json
+
+
+def get_release_gh_latest():
+    response = requests.get(URL_GH_RELEASES_LATEST)
+    json = response.json()
+    if json.get('tag_name'):
+        return json['tag_name']
+    else:
+        return None
 
 
 def get_releases_gh():
