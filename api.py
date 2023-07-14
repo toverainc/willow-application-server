@@ -294,6 +294,12 @@ async def post_release_cache(request: Request):
         raise HTTPException(status_code=resp.status_code)
 
 
+@app.post("/api/release/delete")
+async def post_release_delete(request: Request):
+    data = await request.json()
+    os.remove(data['path'])
+
+
 @app.post("/api/ota")
 async def post_ota(body: Dict = Body(...)):
     log.error(f"body: {body} {type(body)}")
