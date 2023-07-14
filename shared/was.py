@@ -136,12 +136,14 @@ def get_releases_local(was_url):
     name = 'willow-ota-ESP32_S3_BOX.bin'
     if os.path.isfile(f"{DIR_OTA}/local/{name}"):
         releases['local']['ESP32-S3-BOX'] = {}
+        releases['local']['ESP32-S3-BOX']['cached'] = True
         releases['local']['ESP32-S3-BOX']['file_name'] = name
         releases['local']['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, "local", name)
 
     name = 'willow-ota-ESP32_S3_BOX_LITE.bin'
     if os.path.isfile(f"{DIR_OTA}/local/{name}"):
         releases['local']['ESP32-S3-BOX-Lite'] = {}
+        releases['local']['ESP32-S3-BOX-Lite']['cached'] = True
         releases['local']['ESP32-S3-BOX-Lite']['file_name'] = name
         releases['local']['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, "local", name)
 
@@ -172,12 +174,20 @@ def get_releases(was_url, refresh=False):
                     releases[tag_name]['ESP32-S3-BOX']['gh_url'] = asset['browser_download_url']
                     releases[tag_name]['ESP32-S3-BOX']['size'] = asset['size']
                     releases[tag_name]['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, tag_name, name)
+                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
+                        releases[tag_name]['ESP32-S3-BOX']['cached'] = True
+                    else:
+                        releases[tag_name]['ESP32-S3-BOX']['cached'] = False
                 elif name == 'willow-ota-ESP32_S3_BOX_LITE.bin':
                     releases[tag_name]['ESP32-S3-BOX-Lite'] = {}
                     releases[tag_name]['ESP32-S3-BOX-Lite']['file_name'] = name
                     releases[tag_name]['ESP32-S3-BOX-Lite']['gh_url'] = asset['browser_download_url']
                     releases[tag_name]['ESP32-S3-BOX-Lite']['size'] = asset['size']
                     releases[tag_name]['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, tag_name, name)
+                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
+                        releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = True
+                    else:
+                        releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = False
             # avoid releases without OTA assets
             if len(releases[tag_name]) == 0:
                 del releases[tag_name]

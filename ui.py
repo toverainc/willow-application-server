@@ -7,6 +7,7 @@ from shared.was import (
     apply_config_host,
     apply_nvs_host,
     construct_url,
+    delete_release,
     get_ip,
     get_nvs,
     ota,
@@ -58,7 +59,7 @@ title = 'Willow Application Server'
 st.set_page_config(page_title=title, layout='wide')
 st.title(title)
 
-home, clients, configuration, multinet = st.tabs(["Home", "Clients", "Configuration", "Multinet"])
+home, clients, configuration, multinet, updates = st.tabs(["Home", "Clients", "Configuration", "Multinet", "Updates"])
 
 with home:
     st.metric(label='Connected Clients', value=num_devices())
@@ -336,3 +337,39 @@ with multinet:
                 multinet_commands.close()
 
                 st.session_state["ha_commands"] = ha_commands
+
+with updates:
+    # we need the WAS URL to refresh releases so hide button and warning when there is no user NVS config
+    if len(user_nvs) != 0:
+        if latest_release is None or len(releases) == 0:
+            st.warning("Unable to get Github releases. Might be caused by Github rate limits.")
+
+        btn_refresh = st.button(label="Refresh releases", help="Refresh Github and local releases")
+        if btn_refresh:
+            releases = get_releases(user_nvs["WAS"]["URL"], refresh=True)
+
+    for release in releases.keys():
+        if release == latest_release:
+            st.header(f"{release} (latest)")
+        else:
+            st.header(release)
+
+        cols = st.columns(3)
+        fields = ["Hardware Type", "Cached", "Delete"]
+
+        for col, field in zip(cols, fields):
+            col.write(f"**{field}**")
+        for device in releases[release].keys():
+            hw_type, cached, delete = st.columns(3)
+            hw_type.write(device)
+            if release == 'local':
+                cached.write('local')
+            else:
+                cached.write(releases[release][device]['cached'])
+
+            with delete:
+                btn_key = f"btn_delete_{release}_{device}"
+                st.button(key=btn_key, label="Delete", disabled=not releases[release][device]['cached'],
+                          kwargs=dict(releases[release][device], release=release), on_click=delete_release)
+
+        st.divider()
