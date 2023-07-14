@@ -16,6 +16,7 @@ URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
+URL_WAS_API_RELEASE_DELETE = 'http://localhost:8502/api/release/delete'
 
 URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
 URL_WAS_API_CONFIG_APPLY = "http://localhost:8502/api/config/apply"
@@ -50,6 +51,13 @@ def construct_url(host, port, tls=False, ws=False):
             scheme = "http"
 
     return f"{scheme}://{host}:{port}"
+
+
+def delete_release(**kwargs):
+    data = {}
+    data['path'] = f"{DIR_OTA}/{kwargs['release']}/{kwargs['file_name']}"
+
+    requests.post(URL_WAS_API_RELEASE_DELETE, json=data)
 
 
 def get_config():
