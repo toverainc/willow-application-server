@@ -13,6 +13,9 @@ from websockets.exceptions import ConnectionClosed
 
 from shared.was import (
     DIR_OTA,
+    STORAGE_USER_CONFIG,
+    STORAGE_USER_MULTINET,
+    STORAGE_USER_NVS,
     construct_url,
     get_releases_gh,
 )
@@ -108,7 +111,7 @@ def build_msg(config, container):
 def get_config_ws():
     config = None
     try:
-        with open("storage/user_config.json", "r") as config_file:
+        with open(STORAGE_USER_CONFIG, "r") as config_file:
             config = config_file.read()
     except Exception as e:
         log.error(f"failed to get config: {e}")
@@ -143,7 +146,7 @@ async def post_config(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
-        save_json_to_file("storage/user_config.json", data)
+        save_json_to_file(STORAGE_USER_CONFIG, data)
         msg = build_msg(data, "config")
         log.info(str(msg))
         if apply:
@@ -166,7 +169,7 @@ async def post_nvs(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
-        save_json_to_file("storage/user_nvs.json", data)
+        save_json_to_file(STORAGE_USER_NVS, data)
         msg = build_msg(data, "nvs")
         log.info(str(msg))
         if apply:
@@ -208,7 +211,7 @@ async def get_clients():
 
 @app.get("/api/config")
 async def get_config():
-    return get_json_from_file("storage/user_config.json")
+    return get_json_from_file(STORAGE_USER_CONFIG)
 
 
 @app.get("/api/ha_token")
@@ -234,12 +237,12 @@ async def get_ha_url():
 
 @app.get("/api/multinet")
 async def get_multinet():
-    return get_json_from_file("storage/user_multinet.json")
+    return get_json_from_file(STORAGE_USER_MULTINET)
 
 
 @app.get("/api/nvs")
 async def get_nvs():
-    return get_json_from_file("storage/user_nvs.json")
+    return get_json_from_file(STORAGE_USER_NVS)
 
 
 @app.get("/api/releases/")
