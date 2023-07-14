@@ -26,3 +26,12 @@ Visit ```http://my_was_host:8501``` in your browser.
 
 ## OTA
 We list releases with OTA assets. Select the wanted release and click the OTA button. If the release is not already cached in WAS, WAS will download the binary from Github and cache it, then instruct Willow to start OTA with the URL of the cached asset. This makes it possible to run Willow in an isolated VLAN without Internet access.
+
+To use a self-built binary for OTA, place it in the the ota/local directory of the was-storage volume using the following filenames:
+* willow-ota-ESP32_S3_BOX.bin
+* willow-ota-ESP32_S3_BOX_LITE.bin
+
+To copy the file to the running container:
+```
+podman cp build/willow.bin was:/app/storage/ota/local/willow-ota-ESP32_S3_BOX.bin
+```
