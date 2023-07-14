@@ -80,6 +80,14 @@ def get_config():
     return json
 
 
+def get_device_label(mac_addr):
+    devices = get_devices()
+    for device in devices:
+        if device['mac_addr'] == mac_addr:
+            if 'label' in device:
+                return device['label']
+
+
 def get_devices():
     response = requests.get(URL_WAS_API_DEVICES)
     return response.json()
