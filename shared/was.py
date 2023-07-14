@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import requests
 import socket
@@ -121,9 +122,35 @@ def get_releases_gh():
     return releases.json()
 
 
+def get_releases_local(was_url):
+    releases = {'local': {}}
+
+    name = 'willow-ota-ESP32_S3_BOX.bin'
+    if os.path.isfile(f"{DIR_OTA}/local/{name}"):
+        releases['local']['ESP32-S3-BOX'] = {}
+        releases['local']['ESP32-S3-BOX']['file_name'] = name
+        releases['local']['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, "local", name)
+
+    name = 'willow-ota-ESP32_S3_BOX_LITE.bin'
+    if os.path.isfile(f"{DIR_OTA}/local/{name}"):
+        releases['local']['ESP32-S3-BOX-Lite'] = {}
+        releases['local']['ESP32-S3-BOX-Lite']['file_name'] = name
+        releases['local']['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, "local", name)
+
+    if len(releases['local']) == 0:
+        return {}
+
+    return releases
+
+
 def get_releases(was_url, refresh=False):
     gh_releases = requests.get(f"{URL_WAS_API_RELEASES}/?refresh={refresh}").json()
+    local_releases = get_releases_local(was_url)
     releases = {}
+
+    if len(local_releases) > 0:
+        releases = merge_dict(releases, local_releases)
+
     # Github might be rate-limiting so use try to avoid KeyError
     try:
         for release in gh_releases:
@@ -182,7 +209,8 @@ def num_devices():
 
 def ota(hostname, info, version):
     info['version'] = version
-    requests.post(URL_WAS_API_RELEASE_CACHE, json=info)
+    if version != 'local':
+        requests.post(URL_WAS_API_RELEASE_CACHE, json=info)
     requests.post(URL_WAS_API_OTA, json={'hostname': hostname, 'ota_url': info['was_url']})
 
 

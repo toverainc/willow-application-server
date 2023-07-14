@@ -1,6 +1,7 @@
 import json
 import streamlit as st
 
+from copy import deepcopy
 from os import environ
 from shared.was import (
     apply_config_host,
@@ -89,7 +90,13 @@ with clients:
                        on_click=apply_nvs_host, type="primary")
 
         if len(releases) > 0:
-            actions.selectbox("Select release to flash", releases, key=f"sb_ota_{idx}")
+            # if there's a local OTA file for at least one hw type but not all hw types, we can hit a KeyError
+            device_releases = deepcopy(releases)
+            for release in list(device_releases):
+                if releases[release].get(row['hw_type']) is None:
+                    device_releases.pop(release)
+
+            actions.selectbox("Select release to flash", device_releases, key=f"sb_ota_{idx}")
             actions.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname'],
                            info=releases[st.session_state[f"sb_ota_{idx}"]][row['hw_type']],
                            version=st.session_state[f"sb_ota_{idx}"]), label="OTA", on_click=ota, type="primary")
