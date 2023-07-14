@@ -237,6 +237,11 @@ async def get_config():
     return get_json_from_file(STORAGE_USER_CONFIG)
 
 
+@app.get("/api/devices")
+async def api_get_devices():
+    return JSONResponse(get_devices())
+
+
 @app.get("/api/ha_token")
 async def get_ha_token():
     try:
