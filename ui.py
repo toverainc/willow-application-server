@@ -14,6 +14,7 @@ from shared.was import (
     ota,
     get_clients,
     get_config,
+    get_device_label,
     get_ha_commands_for_entity,
     get_ha_entities,
     get_release_gh_latest,
@@ -22,6 +23,7 @@ from shared.was import (
     merge_dict,
     num_clients,
     post_config,
+    post_device,
     post_nvs,
     validate_config,
     validate_nvs,
@@ -84,8 +86,8 @@ with home:
         st.metric(label='Outdated Clients', value=outdated_clients)
 
 with clients:
-    cols = st.columns(5)
-    fields = ["Hostname", "Hardware Type", "Remote", "Version", "Actions"]
+    cols = st.columns(6)
+    fields = ["Hostname", "Hardware Type", "Label", "Remote", "Version", "Actions"]
 
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
@@ -93,12 +95,29 @@ with clients:
     for idx, row in enumerate(connected_clients):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
             continue
-        hostname, hw_type, remote, version, actions = st.columns(5)
+        hostname, hw_type, label, remote, version, actions = st.columns(6)
         hostname.write(row['hostname'])
         hw_type.write(row['hw_type'])
+        label.write(get_device_label(row['mac_addr']))
         remote.write(f"{row['ip']}:{row['port']}")
         willow_version = row['user_agent'].replace('Willow/', '')
         version.write(willow_version)
+
+        btn_edit = actions.button(key=f"btn_edit_{idx}", label="Edit")
+
+        with label:
+            btn_save_key = f"btn_save_{idx}"
+            lbl_key = f"lbl_{idx}"
+            lbl = None
+            if btn_edit:
+                lbl = st.text_input(key=lbl_key, label="Label", value=get_device_label(row['mac_addr']))
+                btn_save = st.button(key=btn_save_key, label="Save")
+
+            if btn_save_key in st.session_state and st.session_state[btn_save_key]:
+                device = {'mac_addr': row['mac_addr'], 'label': st.session_state[lbl_key]}
+                post_device(device)
+                st.experimental_rerun()
+
         actions.button(key=f"btn_apply_cfg_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply Config",
                        on_click=apply_config_host, type="primary")
         actions.button(key=f"btn_apply_nvs_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply NVS",
