@@ -12,15 +12,15 @@ from shared.was import (
     get_ip,
     get_nvs,
     ota,
+    get_clients,
     get_config,
-    get_devices,
     get_ha_commands_for_entity,
     get_ha_entities,
     get_release_gh_latest,
     get_releases,
     get_tz,
     merge_dict,
-    num_devices,
+    num_clients,
     post_config,
     post_nvs,
     validate_config,
@@ -52,7 +52,7 @@ try:
 except Exception:
     default_nvs = {}
 
-devices = get_devices()
+connected_clients = get_clients()
 latest_release = get_release_gh_latest()
 outdated_clients = 0
 releases = {}
@@ -61,8 +61,8 @@ if len(user_nvs) != 0:
 
 # latest_release is None when we hit Github rate-limit
 if latest_release is not None:
-    for device in devices:
-        willow_version = device['user_agent'].replace('Willow/', '')
+    for client in connected_clients:
+        willow_version = client['user_agent'].replace('Willow/', '')
         if willow_version != latest_release:
             outdated_clients += 1
 
@@ -79,7 +79,7 @@ home, clients, configuration, multinet, updates = st.tabs(["Home", "Clients", "C
 with home:
     col1, col2 = st.columns(2)
     with col1:
-        st.metric(label='Connected Clients', value=num_devices())
+        st.metric(label='Connected Clients', value=num_clients())
     with col2:
         st.metric(label='Outdated Clients', value=outdated_clients)
 
@@ -90,7 +90,7 @@ with clients:
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
 
-    for idx, row in enumerate(devices):
+    for idx, row in enumerate(connected_clients):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
             continue
         hostname, hw_type, remote, version, actions = st.columns(5)
