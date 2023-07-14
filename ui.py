@@ -15,6 +15,7 @@ from shared.was import (
     get_devices,
     get_ha_commands_for_entity,
     get_ha_entities,
+    get_release_gh_latest,
     get_releases,
     get_tz,
     merge_dict,
@@ -50,9 +51,19 @@ try:
 except Exception:
     default_nvs = {}
 
+devices = get_devices()
+latest_release = get_release_gh_latest()
+outdated_clients = 0
 releases = {}
 if len(user_nvs) != 0:
     releases = get_releases(user_nvs["WAS"]["URL"])
+
+# latest_release is None when we hit Github rate-limit
+if latest_release is not None:
+    for device in devices:
+        willow_version = device['user_agent'].replace('Willow/', '')
+        if willow_version != latest_release:
+            outdated_clients += 1
 
 title = 'Willow Application Server'
 
@@ -62,13 +73,16 @@ st.title(title)
 home, clients, configuration, multinet, updates = st.tabs(["Home", "Clients", "Configuration", "Multinet", "Updates"])
 
 with home:
-    st.metric(label='Connected Clients', value=num_devices())
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label='Connected Clients', value=num_devices())
+    with col2:
+        st.metric(label='Outdated Clients', value=outdated_clients)
 
     if len(user_config) == 0:
         st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started.")
 
 with clients:
-    devices = get_devices()
     cols = st.columns(6)
     fields = ["Hostname", "Hardware Type", "IP", "Port", "Version", "Actions"]
 
@@ -83,7 +97,8 @@ with clients:
         hw_type.write(row['hw_type'])
         ip.write(row['ip'])
         port.write(row['port'])
-        version.write(row['user_agent'].replace('Willow/', ''))
+        willow_version = row['user_agent'].replace('Willow/', '')
+        version.write(willow_version)
 
         actions.button(key=f"btn_apply_cfg_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply Config",
                        on_click=apply_config_host, type="primary")
