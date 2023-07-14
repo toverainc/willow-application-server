@@ -83,8 +83,8 @@ with home:
         st.metric(label='Outdated Clients', value=outdated_clients)
 
 with clients:
-    cols = st.columns(6)
-    fields = ["Hostname", "Hardware Type", "IP", "Port", "Version", "Actions"]
+    cols = st.columns(5)
+    fields = ["Hostname", "Hardware Type", "Remote", "Version", "Actions"]
 
     for col, field in zip(cols, fields):
         col.write(f"**{field}**")
@@ -92,14 +92,12 @@ with clients:
     for idx, row in enumerate(devices):
         if row['hostname'] == "unknown" or row['hw_type'] == "unknown":
             continue
-        hostname, hw_type, ip, port, version, actions = st.columns(6)
+        hostname, hw_type, remote, version, actions = st.columns(5)
         hostname.write(row['hostname'])
         hw_type.write(row['hw_type'])
-        ip.write(row['ip'])
-        port.write(row['port'])
+        remote.write(f"{row['ip']}:{row['port']}")
         willow_version = row['user_agent'].replace('Willow/', '')
         version.write(willow_version)
-
         actions.button(key=f"btn_apply_cfg_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply Config",
                        on_click=apply_config_host, type="primary")
         actions.button(key=f"btn_apply_nvs_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply NVS",
