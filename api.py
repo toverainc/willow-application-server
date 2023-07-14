@@ -13,6 +13,7 @@ from websockets.exceptions import ConnectionClosed
 
 from shared.was import (
     DIR_OTA,
+    STORAGE_DEVICES,
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
@@ -124,6 +125,21 @@ def get_config_ws():
     finally:
         config_file.close()
         return config
+
+
+def get_devices():
+    devices = []
+
+    if os.path.isfile(STORAGE_DEVICES):
+        with open(STORAGE_DEVICES, "r") as devices_file:
+            devices = json.load(devices_file)
+        devices_file.close()
+    else:
+        with open(STORAGE_DEVICES, "x") as devices_file:
+            json.dump(devices, devices_file)
+        devices_file.close()
+
+    return devices
 
 
 def get_json_from_file(path):
@@ -267,6 +283,27 @@ async def apply_config(request: Request):
 @app.post("/api/config/save")
 async def save_config(request: Request):
     await post_config(request, False)
+
+
+@app.post("/api/device")
+async def post_device(request: Request):
+    data = await request.json()
+
+    devices = get_devices()
+    new = True
+
+    for i, device in enumerate(devices):
+        if device.get("mac_addr") == data['mac_addr']:
+            new = False
+            devices[i] = data
+            break
+
+    if new and len(data['mac_addr']) > 0:
+        devices.append(data)
+
+    with open(STORAGE_DEVICES, "w") as devices_file:
+        json.dump(devices, devices_file)
+    devices_file.close()
 
 
 @app.post("/api/nvs/apply")
