@@ -11,6 +11,7 @@ from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 
 from shared.was import (
+    DIR_OTA,
     construct_url,
     get_releases_gh,
 )
@@ -87,7 +88,10 @@ class ConnMgr:
             self.connected_clients[ws].set_hw_type(value)
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+if not os.path.isdir(DIR_OTA):
+    os.makedirs(DIR_OTA)
+
+app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
 connmgr = ConnMgr()
 releases = get_releases_gh()
 
