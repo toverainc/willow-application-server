@@ -7,6 +7,7 @@ import streamlit as st
 from num2words import num2words
 from websockets.sync.client import connect
 
+DIR_OTA = 'storage/ota'
 
 URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
 
