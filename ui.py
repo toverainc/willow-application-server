@@ -70,6 +70,9 @@ title = 'Willow Application Server'
 st.set_page_config(page_title=title, layout='wide')
 st.title(title)
 
+if len(user_config) == 0 or len(user_nvs) == 0:
+    st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started.")
+
 home, clients, configuration, multinet, updates = st.tabs(["Home", "Clients", "Configuration", "Multinet", "Updates"])
 
 with home:
@@ -78,9 +81,6 @@ with home:
         st.metric(label='Connected Clients', value=num_devices())
     with col2:
         st.metric(label='Outdated Clients', value=outdated_clients)
-
-    if len(user_config) == 0:
-        st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started.")
 
 with clients:
     cols = st.columns(6)
