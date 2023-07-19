@@ -25,6 +25,7 @@ from shared.was import (
     post_config,
     post_device,
     post_nvs,
+    restart_device,
     validate_config,
     validate_nvs,
 )
@@ -123,6 +124,9 @@ with clients:
                        on_click=apply_config_host, type="primary")
         actions.button(key=f"btn_apply_nvs_{idx}", kwargs=dict(hostname=row['hostname']), label="Apply NVS",
                        on_click=apply_nvs_host, type="primary")
+
+        actions.button(key=f"btn_restart_{idx}", kwargs=dict(hostname=row['hostname']), label="Restart",
+                       on_click=restart_device, type="primary")
 
         if len(releases) > 0:
             # if there's a local OTA file for at least one hw type but not all hw types, we can hit a KeyError
