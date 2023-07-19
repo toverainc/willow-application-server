@@ -311,6 +311,22 @@ async def post_device(request: Request):
     devices_file.close()
 
 
+@app.post("/api/device/restart")
+async def post_device_restart(request: Request):
+    data = await request.json()
+    if 'hostname' in data:
+        hostname = data["hostname"]
+
+        msg = json.dumps({'cmd': 'restart'})
+        try:
+            ws = connmgr.get_client_by_hostname(hostname)
+            await ws.send_text(msg)
+            return "Success"
+        except Exception as e:
+            log.error(f"failed to send restart command to {data['hostname']} ({e})")
+            return "Error"
+
+
 @app.post("/api/nvs/apply")
 async def apply_nvs(request: Request):
     await post_nvs(request, True)
