@@ -112,8 +112,8 @@ with clients:
                 if releases[release].get(row['hw_type']) is None:
                     device_releases.pop(release)
 
-            actions.selectbox("Select release to flash", device_releases, key=f"sb_ota_{idx}")
-            actions.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname'],
+            version.selectbox("Select release to flash", device_releases, key=f"sb_ota_{idx}")
+            version.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname'],
                            info=releases[st.session_state[f"sb_ota_{idx}"]][row['hw_type']],
                            version=st.session_state[f"sb_ota_{idx}"]), label="OTA", on_click=ota, type="primary")
 
