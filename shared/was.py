@@ -21,6 +21,7 @@ STORAGE_USER_NVS = 'storage/user_nvs.json'
 URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
 URL_WAS_API_DEVICE = 'http://localhost:8502/api/device'
 URL_WAS_API_DEVICES = 'http://localhost:8502/api/devices'
+URL_WAS_API_DEVICE_RESTART = 'http://localhost:8502/api/device/restart'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
@@ -280,6 +281,10 @@ def post_nvs(json, apply=False):
     else:
         url = URL_WAS_API_NVS_SAVE
     requests.post(url, json=json)
+
+
+def restart_device(hostname):
+    requests.post(URL_WAS_API_DEVICE_RESTART, json={'hostname': hostname})
 
 
 def test_url(url, error_msg, ws=False):
