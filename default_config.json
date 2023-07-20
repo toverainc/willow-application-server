@@ -2,6 +2,7 @@
   "aec": true,
   "audio_codec": "PCM",
   "audio_response_type": "None",
+  "bss": true,
   "command_endpoint": "Home Assistant",
   "hass_host": "homeassistant.local",
   "hass_port": 8123,
