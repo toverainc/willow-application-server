@@ -1,4 +1,5 @@
 {
+  "aec": true,
   "audio_codec": "PCM",
   "audio_response_type": "None",
   "command_endpoint": "Home Assistant",
