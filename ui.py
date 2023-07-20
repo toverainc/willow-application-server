@@ -245,6 +245,7 @@ with configuration:
         advanced = st.checkbox(label='Show advanced settings')
         if advanced:
             config["aec"] = st.checkbox(key="aec", label="Acoustic Echo Cancellation", value=config["aec"])
+            config["bss"] = st.checkbox(key="bss", label="Blind Source Separation", value=config["bss"])
 
             audio_codecs = ('AMR-WB', 'PCM', 'WAV')
             config["audio_codec"] = st.selectbox("Audio codec to use for streaming to WIS",
