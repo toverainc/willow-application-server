@@ -9,6 +9,7 @@
   "hass_tls": false,
   "hass_token": "your_ha_token",
   "lcd_brightness": 700,
+  "lvgl_lock_timeout": 500,
   "mic_gain": 14,
   "ntp_config": "Host",
   "ntp_host": "pool.ntp.org",

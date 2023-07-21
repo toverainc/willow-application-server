@@ -304,6 +304,13 @@ with configuration:
             config["vad_timeout"] = st.slider("VAD Timeout", 1, 1000, value=config["vad_timeout"],
                                               help=vad_timeout_help)
 
+
+            lvgl_lock_timeout_help = '''How long to wait trying to obtain the LVGL lock before giving up.'''
+            config["lvgl_lock_timeout"] = st.slider("LVGL lock timeout (ms)", 0, 5000,
+                                                    help=lvgl_lock_timeout_help,
+                                                    value=config["lvgl_lock_timeout"])
+
+
         skip_connectivity_checks = st.checkbox(key='skip_connectivity_checks', label='Skip connectivity checks')
 
         # Config form submit button
