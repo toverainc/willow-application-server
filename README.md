@@ -33,5 +33,5 @@ To use a self-built binary for OTA, place it in the the ota/local directory of t
 
 To copy the file to the running container:
 ```
-podman cp build/willow.bin was:/app/storage/ota/local/willow-ota-ESP32_S3_BOX.bin
+podman cp build/willow.bin willow-application-server:/app/storage/ota/local/willow-ota-ESP32_S3_BOX.bin
 ```
