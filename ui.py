@@ -75,7 +75,8 @@ st.set_page_config(page_title=title, layout='wide')
 st.title(title)
 
 if len(user_config) == 0 or len(user_nvs) == 0:
-    st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started.")
+    st.info("Welcome to the Willow Application Server. Go to the configuration tab to get started."
+            "Please check the tooltips to avoid common mistakes!")
 
 home, clients, configuration, multinet, updates = st.tabs(["Home", "Clients", "Configuration", "Multinet", "Updates"])
 
