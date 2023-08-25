@@ -24,6 +24,14 @@ jobs:
       - name: generate tz.json
         run: python3 /tmp/gen-tz.py --json > tz.json
 
+      - name: configure QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: 'arm64'
+
+      - name: configure buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: login to ghcr.io
         uses: docker/login-action@v2
         with:
@@ -46,6 +54,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
