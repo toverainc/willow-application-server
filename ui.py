@@ -173,7 +173,7 @@ with configuration:
         help_wifi_psk = "Password, passphrase or pre-shared key for the wireless network. Case sensitive!"
         nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"], help=help_wifi_psk)
 
-        skip_connectivity_checks_nvs = st.checkbox(key='skip_connectivity_checks_nvs', label='Skip connectivity checks')
+        skip_connectivity_checks_nvs = st.toggle(key='skip_connectivity_checks_nvs', label='Skip connectivity checks')
 
         # NVS form submit button
         nvs_apply = st.button("Save and Apply", key="btn_nvs")
@@ -228,7 +228,7 @@ with configuration:
             config["hass_host"] = st.text_input("Home Assistant Host", value=config["hass_host"])
             config["hass_port"] = st.number_input("Home Assistant Port", min_value=1, max_value=65535,
                                                   value=config["hass_port"])
-            config["hass_tls"] = st.checkbox('Home Assistant use TLS', value=config["hass_tls"])
+            config["hass_tls"] = st.toggle('Home Assistant use TLS', value=config["hass_tls"])
             config["hass_token"] = st.text_input("Home Assistant Token", value=config["hass_token"])
 
         if config["command_endpoint"] == "openHAB":
@@ -270,10 +270,10 @@ with configuration:
         if config["ntp_config"] == "Host":
             config["ntp_host"] = st.text_input("NTP Host", value=config["ntp_host"])
 
-        advanced = st.checkbox(label='Show advanced settings')
+        advanced = st.toggle(label='Show advanced settings')
         if advanced:
-            config["aec"] = st.checkbox(key="aec", label="Acoustic Echo Cancellation", value=config["aec"])
-            config["bss"] = st.checkbox(key="bss", label="Blind Source Separation", value=config["bss"])
+            config["aec"] = st.toggle(key="aec", label="Acoustic Echo Cancellation", value=config["aec"])
+            config["bss"] = st.toggle(key="bss", label="Blind Source Separation", value=config["bss"])
 
             audio_codecs = ('AMR-WB', 'PCM', 'WAV')
             config["audio_codec"] = st.selectbox("Audio codec to use for streaming to WIS",
@@ -310,7 +310,7 @@ with configuration:
             config["vad_timeout"] = st.slider("VAD Timeout", 1, 1000, value=config["vad_timeout"],
                                               help=vad_timeout_help)
 
-        skip_connectivity_checks = st.checkbox(key='skip_connectivity_checks', label='Skip connectivity checks')
+        skip_connectivity_checks = st.toggle(key='skip_connectivity_checks', label='Skip connectivity checks')
 
         # Config form submit button
         config_save = st.button("Save")
