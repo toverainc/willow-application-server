@@ -164,9 +164,13 @@ with configuration:
     expander_connectivity = st.expander(label='Connectivity')
     with expander_connectivity:
 
-        nvs["WAS"]["URL"] = st.text_input("Willow Application Server URL", value=was_url)
-        nvs["WIFI"]["SSID"] = st.text_input("WiFi SSID", value=nvs["WIFI"]["SSID"])
-        nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"])
+        help_was_url = """WAS WebSocket URL. Must start with ws:// (or wss:// if you use a reverse proxy with TLS).
+                       Must include /ws path. Must be reachable from the Wi-Fi network configured below."""
+        nvs["WAS"]["URL"] = st.text_input("Willow Application Server URL", value=was_url, help=help_was_url)
+        help_wifi_ssid = "Name of the wireless network to connect to. Case sensitive!"
+        nvs["WIFI"]["SSID"] = st.text_input("WiFi SSID", value=nvs["WIFI"]["SSID"], help=help_wifi_ssid)
+        help_wifi_psk = "Password, passphrase or pre-shared key for the wireless network. Case sensitive!"
+        nvs["WIFI"]["PSK"] = st.text_input("WiFi Password", value=nvs["WIFI"]["PSK"], help=help_wifi_psk)
 
         skip_connectivity_checks_nvs = st.checkbox(key='skip_connectivity_checks_nvs', label='Skip connectivity checks')
 
