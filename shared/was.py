@@ -280,7 +280,7 @@ def post_nvs(json, apply=False):
         url = URL_WAS_API_NVS_APPLY
     else:
         url = URL_WAS_API_NVS_SAVE
-    requests.post(url, json=json)
+    requests.post(url, data=json)
 
 
 def restart_device(hostname):
