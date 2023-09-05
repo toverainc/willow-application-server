@@ -179,8 +179,7 @@ with configuration:
         nvs_apply = st.button("Save and Apply", key="btn_nvs")
         if nvs_apply:
             if validate_nvs(nvs):
-                json_object = json.dumps(nvs, indent=2)
-                post_nvs(json_object, True)
+                post_nvs(nvs, True)
                 st.write("NVS values saved")
                 st.json(nvs)
                 st.experimental_rerun()
@@ -188,8 +187,7 @@ with configuration:
         nvs_save = st.button("Save", key="btn_nvs_save")
         if nvs_save:
             if validate_nvs(nvs):
-                json_object = json.dumps(nvs, indent=2)
-                post_nvs(json_object, False)
+                post_nvs(nvs, False)
                 st.write("NVS values saved")
                 st.json(nvs)
                 st.experimental_rerun()
@@ -316,8 +314,7 @@ with configuration:
         config_save = st.button("Save")
         if config_save:
             if validate_config(config):
-                json_object = json.dumps(config, indent=2)
-                post_config(json_object, False)
+                post_config(config, False)
                 st.write("Configuration Saved:")
                 st.json(config)
                 st.experimental_rerun()
@@ -325,8 +322,7 @@ with configuration:
         config_apply = st.button("Save and Apply")
         if config_apply:
             if validate_config(config):
-                json_object = json.dumps(config, indent=2)
-                post_config(json_object, True)
+                post_config(config, True)
                 st.write("Configuration Saved:")
                 st.json(config)
                 st.experimental_rerun()
