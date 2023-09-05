@@ -168,6 +168,7 @@ async def post_config(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
+        data = json.dumps(data)
         save_json_to_file(STORAGE_USER_CONFIG, data)
         msg = build_msg(data, "config")
         log.info(str(msg))
@@ -191,6 +192,7 @@ async def post_nvs(request, apply=False):
             log.error(f"failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
+        data = json.dumps(data)
         save_json_to_file(STORAGE_USER_NVS, data)
         msg = build_msg(data, "nvs")
         log.info(str(msg))
