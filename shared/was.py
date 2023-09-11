@@ -334,7 +334,7 @@ def validate_config(config):
         if not validate_url(config['rest_url']):
             ok = False
         elif not st.session_state['skip_connectivity_checks']:
-            if not test_url(config['rest_url'], f":red[Unable to reach openHAB on {config['rest_url']}]"):
+            if not test_url(config['rest_url'], f":red[Unable to reach REST endpoint on {config['rest_url']}]"):
                 ok = False
     if config['speech_rec_mode']:
         if not validate_url(config['wis_tts_url']):
