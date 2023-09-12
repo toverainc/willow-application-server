@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import subprocess
@@ -8,7 +9,9 @@ from fastapi.staticfiles import StaticFiles
 from logging import getLogger
 from requests import get
 from shutil import move
+from time import time
 from typing import Annotated, Dict
+from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 
 from shared.was import (
@@ -23,6 +26,7 @@ from shared.was import (
 
 app = FastAPI()
 log = getLogger("WAS")
+wake_session = None
 websocket = WebSocket
 
 
@@ -97,6 +101,43 @@ class ConnMgr:
             self.connected_clients[ws].set_hw_type(value)
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
+
+
+class WakeEvent:
+    def __init__(self, client, volume):
+        self.client = client
+        self.volume = volume
+
+class WakeSession:
+    def __init__(self):
+        self.events = []
+        self.id = uuid4()
+        self.ts = time()
+        log.error(f"WakeSession with ID {self.id} created")
+
+    def add_event(self, event):
+        log.error(f"WakeSession {self.id} adding event {event}")
+        self.events.append(event)
+
+    async def cleanup(self, timeout=100):
+        await asyncio.sleep(timeout / 1000)
+        max_volume = -1000.0
+        winner = None
+        for event in self.events:
+            if event.volume > max_volume:
+                max_volume = event.volume
+                winner = event.client
+
+        # notify winner first
+        await winner.send_text(json.dumps({'wake_result': {'won': True}}))
+
+        for event in self.events:
+            if event.client != winner:
+                await event.client.send_text(json.dumps({'wake_result': {'won': False}}))
+
+        log.error(f"Terminating WakeSession with ID {self.id}. Winner: {winner}")
+        global wake_session
+        wake_session = None
 
 
 if not os.path.isdir(DIR_OTA):
@@ -393,7 +434,18 @@ async def websocket_endpoint(
             data = await websocket.receive_text()
             log.info(str(data))
             msg = json.loads(data)
-            if "cmd" in msg:
+
+            # latency sensitive so handle first
+            if "wake_start" in msg:
+                global wake_session
+                if wake_session is None:
+                    wake_session = WakeSession()
+                    asyncio.create_task(wake_session.cleanup())
+                if "wake_volume" in msg["wake_start"]:
+                    wake_event = WakeEvent(websocket, msg["wake_start"]["wake_volume"])
+                    wake_session.add_event(wake_event)
+
+            elif "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_msg(get_config_ws(), "config"))
 
@@ -404,6 +456,8 @@ async def websocket_endpoint(
                     connmgr.update_client(websocket, "hw_type", msg["hello"]["hw_type"])
                 if "mac_addr" in msg["hello"]:
                     connmgr.update_client(websocket, "mac_addr", msg["hello"]["mac_addr"])
+
+
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
