@@ -445,6 +445,9 @@ async def websocket_endpoint(
                     wake_event = WakeEvent(websocket, msg["wake_start"]["wake_volume"])
                     wake_session.add_event(wake_event)
 
+            elif "wake_end" in msg:
+                pass
+
             elif "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_msg(get_config_ws(), "config"))
