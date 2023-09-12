@@ -119,7 +119,7 @@ class WakeSession:
         log.error(f"WakeSession {self.id} adding event {event}")
         self.events.append(event)
 
-    async def cleanup(self, timeout=100):
+    async def cleanup(self, timeout=200):
         await asyncio.sleep(timeout / 1000)
         max_volume = -1000.0
         winner = None
