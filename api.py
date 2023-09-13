@@ -10,6 +10,7 @@ from requests import get
 from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
+from fastapi.middleware.cors import CORSMiddleware
 
 from shared.was import (
     DIR_OTA,
@@ -25,6 +26,13 @@ app = FastAPI()
 log = getLogger("WAS")
 websocket = WebSocket
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def migrate_user_files():
     for user_file in ['user_config.json', 'user_multinet.json', 'user_nvs.json']:
@@ -103,6 +111,7 @@ if not os.path.isdir(DIR_OTA):
     os.makedirs(DIR_OTA)
 
 app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
+app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
 connmgr = ConnMgr()
 releases = get_releases_gh()
 
@@ -211,11 +220,6 @@ def save_json_to_file(path, content):
 async def startup_event():
     migrate_user_files()
     start_ui()
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
 
 
 @app.get("/api/clients")
