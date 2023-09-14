@@ -29,6 +29,7 @@ We list releases with OTA assets. Select the wanted release and click the OTA bu
 
 To use a self-built binary for OTA, place it in the the ota/local directory of the was-storage volume using the following filenames:
 * willow-ota-ESP32_S3_BOX.bin
+* willow-ota-ESP32_S3_BOX_3.bin
 * willow-ota-ESP32_S3_BOX_LITE.bin
 
 To copy the file to the running container:
