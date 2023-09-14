@@ -104,7 +104,6 @@ if not os.path.isdir(DIR_OTA):
 
 app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
 connmgr = ConnMgr()
-releases = get_releases_gh()
 
 
 def build_msg(config, container):
@@ -209,6 +208,7 @@ def save_json_to_file(path, content):
 
 @app.on_event("startup")
 async def startup_event():
+    app.gh_releases = get_releases_gh()
     migrate_user_files()
     start_ui()
 
@@ -278,8 +278,8 @@ async def get_nvs():
 @app.get("/api/releases/")
 async def api_get_releases(refresh=False):
     if refresh:
-        releases = get_releases_gh()
-    return releases
+        app.gh_releases = get_releases_gh()
+    return app.gh_releases
 
 
 @app.post("/api/config/apply")
