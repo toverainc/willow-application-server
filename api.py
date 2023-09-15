@@ -152,6 +152,10 @@ def get_json_from_file(path):
     return data
 
 
+def get_nvs():
+    return get_json_from_file(STORAGE_USER_NVS)
+
+
 async def post_config(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
@@ -273,8 +277,8 @@ async def get_multinet():
 
 
 @app.get("/api/nvs")
-async def get_nvs():
-    nvs = get_json_from_file(STORAGE_USER_NVS)
+async def api_get_nvs():
+    nvs = get_nvs()
     return JSONResponse(content=nvs)
 
 
