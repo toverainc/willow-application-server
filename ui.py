@@ -18,7 +18,7 @@ from shared.was import (
     get_ha_commands_for_entity,
     get_ha_entities,
     get_release_gh_latest,
-    get_releases,
+    get_releases_internal,
     get_tz,
     merge_dict,
     num_clients,
@@ -58,9 +58,10 @@ except Exception:
 connected_clients = get_clients()
 latest_release = get_release_gh_latest()
 outdated_clients = 0
-releases = {}
-if len(user_nvs) != 0:
-    releases = get_releases(user_nvs["WAS"]["URL"])
+releases = get_releases_internal()
+
+if not releases:
+    releases = {}
 
 # latest_release is None when we hit Github rate-limit
 if latest_release is not None:
@@ -393,7 +394,7 @@ with updates:
 
         btn_refresh = st.button(label="Refresh releases", help="Refresh Github and local releases")
         if btn_refresh:
-            releases = get_releases(user_nvs["WAS"]["URL"], refresh=True)
+            releases = get_releases_internal(refresh=True)
 
     for release in releases.keys():
         if release == latest_release:
