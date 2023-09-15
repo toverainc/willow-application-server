@@ -156,6 +156,14 @@ def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
 
 
+def get_was_url():
+    try:
+        nvs = get_nvs()
+        return nvs["WAS"]["URL"]
+    except Exception:
+        return False
+
+
 async def post_config(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
