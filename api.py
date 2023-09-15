@@ -149,7 +149,7 @@ def get_json_from_file(path):
     except Exception:
         data = {}
 
-    return JSONResponse(content=data)
+    return data
 
 
 async def post_config(request, apply=False):
@@ -236,7 +236,8 @@ async def get_clients():
 
 @app.get("/api/config")
 async def get_config():
-    return get_json_from_file(STORAGE_USER_CONFIG)
+    config = get_json_from_file(STORAGE_USER_CONFIG)
+    return JSONResponse(content=config)
 
 
 @app.get("/api/devices")
@@ -267,12 +268,14 @@ async def get_ha_url():
 
 @app.get("/api/multinet")
 async def get_multinet():
-    return get_json_from_file(STORAGE_USER_MULTINET)
+    multinet = get_json_from_file(STORAGE_USER_MULTINET)
+    return JSONResponse(content=multinet)
 
 
 @app.get("/api/nvs")
 async def get_nvs():
-    return get_json_from_file(STORAGE_USER_NVS)
+    nvs = get_json_from_file(STORAGE_USER_NVS)
+    return JSONResponse(content=nvs)
 
 
 @app.get("/api/releases/github/")
