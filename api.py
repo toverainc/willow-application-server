@@ -208,7 +208,7 @@ def save_json_to_file(path, content):
 
 @app.on_event("startup")
 async def startup_event():
-    app.gh_releases = get_releases_gh()
+    app.releases_gh = get_releases_gh()
     migrate_user_files()
     start_ui()
 
@@ -275,11 +275,11 @@ async def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
 
 
-@app.get("/api/releases/")
-async def api_get_releases(refresh=False):
+@app.get("/api/releases/github/")
+async def api_get_releases_github(refresh=False):
     if refresh:
-        app.gh_releases = get_releases_gh()
-    return app.gh_releases
+        app.releases_gh = get_releases_gh()
+    return app.releases_gh
 
 
 @app.post("/api/config/apply")

@@ -23,7 +23,7 @@ URL_WAS_API_DEVICE = 'http://localhost:8502/api/device'
 URL_WAS_API_DEVICES = 'http://localhost:8502/api/devices'
 URL_WAS_API_DEVICE_RESTART = 'http://localhost:8502/api/device/restart'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
-URL_WAS_API_RELEASES = 'http://localhost:8502/api/releases'
+URL_WAS_API_RELEASES_GITHUB = 'http://localhost:8502/api/releases/github'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
 URL_WAS_API_RELEASE_DELETE = 'http://localhost:8502/api/release/delete'
 
@@ -192,7 +192,7 @@ def get_releases_local(was_url):
 
 
 def get_releases(was_url, refresh=False):
-    gh_releases = requests.get(f"{URL_WAS_API_RELEASES}/?refresh={refresh}").json()
+    gh_releases = requests.get(f"{URL_WAS_API_RELEASES_GITHUB}/?refresh={refresh}").json()
     local_releases = get_releases_local(was_url)
     releases = {}
 
