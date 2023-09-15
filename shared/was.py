@@ -24,6 +24,7 @@ URL_WAS_API_DEVICES = 'http://localhost:8502/api/devices'
 URL_WAS_API_DEVICE_RESTART = 'http://localhost:8502/api/device/restart'
 URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
 URL_WAS_API_RELEASES_GITHUB = 'http://localhost:8502/api/releases/github'
+URL_WAS_API_RELEASES_INTERNAL = 'http://localhost:8502/api/releases/internal'
 URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
 URL_WAS_API_RELEASE_DELETE = 'http://localhost:8502/api/release/delete'
 
@@ -191,58 +192,12 @@ def get_releases_local(was_url):
     return releases
 
 
-def get_releases(was_url, refresh=False):
-    gh_releases = requests.get(f"{URL_WAS_API_RELEASES_GITHUB}/?refresh={refresh}").json()
-    local_releases = get_releases_local(was_url)
-    releases = {}
-
-    if len(local_releases) > 0:
-        releases = merge_dict(releases, local_releases)
-
-    # Github might be rate-limiting so use try to avoid KeyError
-    try:
-        for release in gh_releases:
-            tag_name = release['tag_name']
-            releases[tag_name] = {}
-            for asset in release['assets']:
-                name = asset['name']
-                if name == 'willow-ota-ESP32_S3_BOX.bin':
-                    releases[tag_name]['ESP32-S3-BOX'] = {}
-                    releases[tag_name]['ESP32-S3-BOX']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX']['gh_url'] = asset['browser_download_url']
-                    releases[tag_name]['ESP32-S3-BOX']['size'] = asset['size']
-                    releases[tag_name]['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, tag_name, name)
-                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                        releases[tag_name]['ESP32-S3-BOX']['cached'] = True
-                    else:
-                        releases[tag_name]['ESP32-S3-BOX']['cached'] = False
-                elif name == 'willow-ota-ESP32_S3_BOX_3.bin':
-                    releases[tag_name]['ESP32-S3-BOX-3'] = {}
-                    releases[tag_name]['ESP32-S3-BOX-3']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX-3']['gh_url'] = asset['browser_download_url']
-                    releases[tag_name]['ESP32-S3-BOX-3']['size'] = asset['size']
-                    releases[tag_name]['ESP32-S3-BOX-3']['was_url'] = get_release_url(was_url, tag_name, name)
-                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                        releases[tag_name]['ESP32-S3-BOX-3']['cached'] = True
-                    else:
-                        releases[tag_name]['ESP32-S3-BOX-3']['cached'] = False
-                elif name == 'willow-ota-ESP32_S3_BOX_LITE.bin':
-                    releases[tag_name]['ESP32-S3-BOX-Lite'] = {}
-                    releases[tag_name]['ESP32-S3-BOX-Lite']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX-Lite']['gh_url'] = asset['browser_download_url']
-                    releases[tag_name]['ESP32-S3-BOX-Lite']['size'] = asset['size']
-                    releases[tag_name]['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, tag_name, name)
-                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = True
-                    else:
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = False
-            # avoid releases without OTA assets
-            if len(releases[tag_name]) == 0:
-                del releases[tag_name]
-    except Exception:
-        pass
-
-    return releases
+def get_releases_internal(refresh=False):
+    resp = requests.get(f"{URL_WAS_API_RELEASES_INTERNAL}/?refresh={refresh}")
+    if resp.status_code == 200:
+        return resp.json()
+    else:
+        return False
 
 
 def get_release_url(was_url, version, filename):
