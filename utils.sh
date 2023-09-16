@@ -43,6 +43,9 @@ WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 TAG=${TAG:-latest}
 NAME=${NAME:was}
 
+# Delay between up/down torture test loops
+TORTURE_DELAY=${TORTURE_DELAY:-60}
+
 set +a
 
 if [ -z "$WAS_IP" ]; then
@@ -106,6 +109,17 @@ stop|down)
 
 shell|docker)
     shell
+;;
+
+torture)
+    while true; do
+        docker compose up -d
+        echo "Sleeping for $TORTURE_DELAY seconds..."
+        sleep $TORTURE_DELAY
+        docker compose down
+        echo "Sleeping for $TORTURE_DELAY seconds..."
+        sleep $TORTURE_DELAY
+    done
 ;;
 
 *)
