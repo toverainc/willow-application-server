@@ -136,7 +136,12 @@ with clients:
                 if releases[release].get(row['hw_type']) is None:
                     device_releases.pop(release)
 
-            version.selectbox("Select release to flash", device_releases, key=f"sb_ota_{idx}")
+            idx_latest = 0
+            for rel_idx, release in enumerate(list(device_releases)):
+                if release == latest_release:
+                    idx_latest = rel_idx
+
+            version.selectbox("Select release to flash", device_releases, key=f"sb_ota_{idx}", index=idx_latest)
             version.button(key=f"btn_ota_{idx}", kwargs=dict(hostname=row['hostname'],
                            info=releases[st.session_state[f"sb_ota_{idx}"]][row['hw_type']],
                            version=st.session_state[f"sb_ota_{idx}"]), label="OTA", on_click=ota, type="primary")
