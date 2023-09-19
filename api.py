@@ -1,7 +1,5 @@
 import json
 import os
-import subprocess
-import threading
 from fastapi import Body, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -35,19 +33,6 @@ def migrate_user_files():
             dest = f"storage/{user_file}"
             if not os.path.isfile(dest):
                 move(user_file, dest)
-
-
-def start_ui():
-    def run(job):
-        proc = subprocess.Popen(job)
-        proc.wait()
-        return proc
-
-    job = ['streamlit', 'run', 'ui.py']
-
-    # server thread will remain active as long as FastAPI thread is running
-    thread = threading.Thread(name='WAS UI', target=run, args=(job,), daemon=True)
-    thread.start()
 
 
 class Client:
@@ -225,7 +210,6 @@ def save_json_to_file(path, content):
 async def startup_event():
     app.releases_gh = get_releases_gh()
     migrate_user_files()
-    start_ui()
 
 
 @app.get("/")
