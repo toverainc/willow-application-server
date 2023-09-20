@@ -391,35 +391,33 @@ async def post_device(request: Request, action: str | None = None):
     devices_file.close()
 
 
-@app.post("/api/release/cache")
-async def post_release_cache(request: Request):
-    data = await request.json()
+@app.post("/api/release")
+async def post_release(request: Request, action: str | None = None):
+    if action == "cache":
+        data = await request.json()
 
-    dir = f"./{DIR_OTA}/{data['version']}"
-    if not os.path.isdir(dir):
-        os.makedirs(dir)
+        dir = f"./{DIR_OTA}/{data['version']}"
+        if not os.path.isdir(dir):
+            os.makedirs(dir)
 
-    path = f"{dir}/{data['file_name']}"
-    if os.path.exists(path):
-        if os.path.getsize(path) == data['size']:
+        path = f"{dir}/{data['file_name']}"
+        if os.path.exists(path):
+            if os.path.getsize(path) == data['size']:
+                return
+            else:
+                os.remove(path)
+
+        resp = get(data['willow_url'])
+        if resp.status_code == 200:
+            with open(path, "wb") as fw:
+                fw.write(resp.content)
+            fw.close()
             return
         else:
-            os.remove(path)
-
-    resp = get(data['willow_url'])
-    if resp.status_code == 200:
-        with open(path, "wb") as fw:
-            fw.write(resp.content)
-        fw.close()
-        return
-    else:
-        raise HTTPException(status_code=resp.status_code)
-
-
-@app.post("/api/release/delete")
-async def post_release_delete(request: Request):
-    data = await request.json()
-    os.remove(data['path'])
+            raise HTTPException(status_code=resp.status_code)
+    elif action == "delete":
+        data = await request.json()
+        os.remove(data['path'])
 
 
 @app.post("/api/ota")
