@@ -1,7 +1,7 @@
 import json
 import os
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 from requests import get
@@ -113,6 +113,7 @@ class ConnMgr:
 if not os.path.isdir(DIR_OTA):
     os.makedirs(DIR_OTA)
 
+app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
 app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
 connmgr = ConnMgr()
 
@@ -246,9 +247,9 @@ async def startup_event():
     migrate_user_files()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/", response_class=RedirectResponse)
+def redirect_admin():
+    return "/admin"
 
 
 @app.get("/api/client")
