@@ -3,7 +3,6 @@ import os
 import re
 import requests
 import socket
-import streamlit as st
 
 from num2words import num2words
 from websockets.sync.client import connect
@@ -274,23 +273,23 @@ def test_url(url, error_msg, ws=False):
     if ok:
         return True
     else:
-        st.write(f":red[{error_msg}]")
+        #st.write(f":red[{error_msg}]")
         return False
 
 
-def validate_config(config):
+def validate_config(config, skip_check = False):
     ok = True
     if config['command_endpoint'] == 'Home Assistant':
         if not validate_string(config['hass_token'], "Invalid Home Assistant token", 1):
             ok = False
         ha_url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
-        if not st.session_state['skip_connectivity_checks']:
+        if not skip_check:
             if not test_url(ha_url, f":red[Unable to reach Home Assistant on {ha_url}]"):
                 ok = False
     elif config['command_endpoint'] == 'openHAB':
         if not validate_url(config['openhab_url']):
             ok = False
-        elif not st.session_state['skip_connectivity_checks']:
+        elif not skip_check:
             if not test_url(config['openhab_url'], f":red[Unable to reach openHAB on {config['openhab_url']}]"):
                 ok = False
     elif config['command_endpoint'] == 'REST':
@@ -304,7 +303,7 @@ def validate_config(config):
                 ok = False
         if not validate_url(config['rest_url']):
             ok = False
-        elif not st.session_state['skip_connectivity_checks']:
+        elif not skip_check:
             if not test_url(config['rest_url'], f":red[Unable to reach REST endpoint on {config['rest_url']}]"):
                 ok = False
     if config['speech_rec_mode']:
@@ -315,7 +314,7 @@ def validate_config(config):
     return ok
 
 
-def validate_nvs(nvs):
+def validate_nvs(nvs, skip_check = False):
     ok = True
     if not validate_url(nvs['WAS']['URL'], True):
         ok = False
@@ -323,7 +322,7 @@ def validate_nvs(nvs):
         ok = False
     if not validate_wifi_ssid(nvs['WIFI']['SSID']):
         ok = False
-    if not st.session_state['skip_connectivity_checks_nvs']:
+    if not skip_check:
         if not test_url(nvs['WAS']['URL'],
                         f":red[Unable to open WebSocket connection to WAS URL on {nvs['WAS']['URL']}]", True):
             ok = False
@@ -332,7 +331,7 @@ def validate_nvs(nvs):
 
 def validate_string(string, error_msg, min_len=1):
     if len(string) < min_len:
-        st.write(f":red[{error_msg}]")
+        #st.write(f":red[{error_msg}]")
         return False
     return True
 
@@ -345,13 +344,13 @@ def validate_url(url, ws=False):
 
     if re.match(pattern, url):
         return True
-    st.write(f":red[Invalid URL: {url}]")
+    #st.write(f":red[Invalid URL: {url}]")
     return False
 
 
 def validate_wifi_psk(psk):
     if len(psk) < 8 or len(psk) > 63:
-        st.write(":red[Wi-Fi WPA passphrase must be between 8 and 63 ASCII characters]")
+        #st.write(":red[Wi-Fi WPA passphrase must be between 8 and 63 ASCII characters]")
         return False
     return True
 
@@ -360,6 +359,6 @@ def validate_wifi_ssid(ssid):
     # TODO:detect non-ASCII characters (streamlit or fastapi converts them to \u.... \
     # the re.match we used in CMake doesn't catch those
     if len(ssid) < 2 or len(ssid) > 32:
-        st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
+        #st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
         return False
     return True
