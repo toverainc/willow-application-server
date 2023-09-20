@@ -424,9 +424,8 @@ async def post_release(request: Request, release: PostRelease = Depends()):
     if release.action == "cache":
         data = await request.json()
 
-        dir = f"./{DIR_OTA}/{data['version']}"
-        if not os.path.isdir(dir):
-            os.makedirs(dir)
+        dir = f"{DIR_OTA}/{data['version']}"
+        Path(dir).mkdir(parents=True, exist_ok=True)
 
         path = f"{dir}/{data['platform']}.bin"
         if os.path.exists(path):
@@ -439,7 +438,6 @@ async def post_release(request: Request, release: PostRelease = Depends()):
         if resp.status_code == 200:
             with open(path, "wb") as fw:
                 fw.write(resp.content)
-            fw.close()
             return
         else:
             raise HTTPException(status_code=resp.status_code)
