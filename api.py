@@ -8,6 +8,7 @@ from requests import get
 from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
+from fastapi.middleware.cors import CORSMiddleware
 
 from shared.was import (
     DIR_OTA,
@@ -17,7 +18,7 @@ from shared.was import (
     STORAGE_USER_NVS,
     construct_url,
     get_release_url,
-    get_releases_gh,
+    get_releases_willow,
     get_releases_local,
     merge_dict,
 )
@@ -26,6 +27,13 @@ app = FastAPI()
 log = getLogger("WAS")
 websocket = WebSocket
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def migrate_user_files():
     for user_file in ['user_config.json', 'user_multinet.json', 'user_nvs.json']:
@@ -208,7 +216,6 @@ def save_json_to_file(path, content):
 
 @app.on_event("startup")
 async def startup_event():
-    app.releases_gh = get_releases_gh()
     migrate_user_files()
 
 
@@ -277,21 +284,19 @@ async def api_get_nvs():
     return JSONResponse(content=nvs)
 
 
-@app.get("/api/releases/github/")
-async def api_get_releases_github(refresh=False):
-    if refresh:
-        app.releases_gh = get_releases_gh()
-    return app.releases_gh
+@app.get("/api/releases")
+async def api_get_releases_willow():
+    releases = get_releases_willow()
+    return releases
 
 
-@app.get("/api/releases/internal/")
-async def api_get_releases_internal(refresh=False):
+@app.get("/api/releases/internal")
+async def api_get_releases_internal():
     was_url = get_was_url()
     if not was_url:
         raise HTTPException(status_code=500, detail="WAS URL not set")
 
-    if refresh:
-        app.releases_gh = get_releases_gh()
+    releases_willow = get_releases_willow()
 
     local_releases = get_releases_local(was_url)
     releases = {}
@@ -301,7 +306,7 @@ async def api_get_releases_internal(refresh=False):
 
     # Github might be rate-limiting so use try to avoid KeyError
     try:
-        for release in app.releases_gh:
+        for release in releases_willow:
             tag_name = release['tag_name']
             releases[tag_name] = {}
             for asset in release['assets']:
@@ -309,7 +314,7 @@ async def api_get_releases_internal(refresh=False):
                 if name == 'willow-ota-ESP32_S3_BOX.bin':
                     releases[tag_name]['ESP32-S3-BOX'] = {}
                     releases[tag_name]['ESP32-S3-BOX']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX']['gh_url'] = asset['browser_download_url']
+                    releases[tag_name]['ESP32-S3-BOX']['willow_url'] = asset['browser_download_url']
                     releases[tag_name]['ESP32-S3-BOX']['size'] = asset['size']
                     releases[tag_name]['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, tag_name, name)
                     if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
@@ -319,7 +324,7 @@ async def api_get_releases_internal(refresh=False):
                 elif name == 'willow-ota-ESP32_S3_BOX_3.bin':
                     releases[tag_name]['ESP32-S3-BOX-3'] = {}
                     releases[tag_name]['ESP32-S3-BOX-3']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX-3']['gh_url'] = asset['browser_download_url']
+                    releases[tag_name]['ESP32-S3-BOX-3']['willow_url'] = asset['browser_download_url']
                     releases[tag_name]['ESP32-S3-BOX-3']['size'] = asset['size']
                     releases[tag_name]['ESP32-S3-BOX-3']['was_url'] = get_release_url(was_url, tag_name, name)
                     if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
@@ -329,7 +334,7 @@ async def api_get_releases_internal(refresh=False):
                 elif name == 'willow-ota-ESP32_S3_BOX_LITE.bin':
                     releases[tag_name]['ESP32-S3-BOX-Lite'] = {}
                     releases[tag_name]['ESP32-S3-BOX-Lite']['file_name'] = name
-                    releases[tag_name]['ESP32-S3-BOX-Lite']['gh_url'] = asset['browser_download_url']
+                    releases[tag_name]['ESP32-S3-BOX-Lite']['willow_url'] = asset['browser_download_url']
                     releases[tag_name]['ESP32-S3-BOX-Lite']['size'] = asset['size']
                     releases[tag_name]['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, tag_name, name)
                     if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
@@ -418,7 +423,7 @@ async def post_release_cache(request: Request):
         else:
             os.remove(path)
 
-    resp = get(data['gh_url'])
+    resp = get(data['willow_url'])
     if resp.status_code == 200:
         with open(path, "wb") as fw:
             fw.write(resp.content)

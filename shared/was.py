@@ -9,8 +9,7 @@ from num2words import num2words
 from websockets.sync.client import connect
 
 DIR_OTA = 'storage/ota'
-
-URL_GH_RELEASES = 'https://worker.heywillow.io/releases'
+URL_WILLOW_RELEASES = 'https://worker.heywillow.io/releases?format=was'
 URL_GH_RELEASES_LATEST = 'https://worker.heywillow.io/releases/latest'
 
 STORAGE_DEVICES = 'storage/devices.json'
@@ -148,17 +147,17 @@ def get_nvs():
     return json
 
 
-def get_release_gh_latest():
-    response = requests.get(URL_GH_RELEASES_LATEST)
+def get_release_willow_latest():
+    response = requests.get(URL_WILLOW_RELEASES)
     json = response.json()
-    if json.get('tag_name'):
+    if json.get('latest'):
         return json['tag_name']
     else:
         return None
 
 
-def get_releases_gh():
-    releases = requests.get(URL_GH_RELEASES)
+def get_releases_willow():
+    releases = requests.get(URL_WILLOW_RELEASES)
     return releases.json()
 
 
@@ -192,8 +191,8 @@ def get_releases_local(was_url):
     return releases
 
 
-def get_releases_internal(refresh=False):
-    resp = requests.get(f"{URL_WAS_API_RELEASES_INTERNAL}/?refresh={refresh}")
+def get_releases_internal():
+    resp = requests.get(f"{URL_WAS_API_RELEASES_INTERNAL}")
     if resp.status_code == 200:
         return resp.json()
     else:
