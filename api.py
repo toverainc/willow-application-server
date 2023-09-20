@@ -115,7 +115,6 @@ Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 
 
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
-#app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
 connmgr = ConnMgr()
 
 
