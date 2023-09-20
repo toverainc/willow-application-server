@@ -373,6 +373,15 @@ async def post_device(request: Request, action: str | None = None):
 
     if action == "restart":
         return await restart_device(data)
+    elif action == "update":
+        msg = json.dumps({'cmd': 'ota_start', 'ota_url': data["ota_url"]})
+        try:
+            ws = connmgr.get_client_by_hostname(data["hostname"])
+            await ws.send_text(msg)
+        except Exception as e:
+            log.error(f"failed to trigger OTA ({e})")
+        finally:
+            return
 
     devices = get_devices()
     new = True
@@ -418,17 +427,6 @@ async def post_release(request: Request, action: str | None = None):
     elif action == "delete":
         data = await request.json()
         os.remove(data['path'])
-
-
-@app.post("/api/ota")
-async def post_ota(body: Dict = Body(...)):
-    log.error(f"body: {body} {type(body)}")
-    msg = json.dumps({'cmd': 'ota_start', 'ota_url': body["ota_url"]})
-    try:
-        ws = connmgr.get_client_by_hostname(body["hostname"])
-        await ws.send_text(msg)
-    except Exception as e:
-        log.error(f"failed to trigger OTA ({e})")
 
 
 @app.websocket("/ws")
