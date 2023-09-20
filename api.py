@@ -1,6 +1,6 @@
 import json
 import os
-from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
+from fastapi import FastAPI, Depends, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
@@ -10,6 +10,8 @@ from shutil import move
 from typing import Annotated, Dict
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import Literal
 
 from shared.was import (
     DIR_OTA,
@@ -110,6 +112,7 @@ class ConnMgr:
 
 # Make sure we always have DIR_OTA
 Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
+
 
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
 #app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
@@ -251,7 +254,7 @@ def redirect_admin():
 
 
 @app.get("/api/client")
-async def get_client(client: str | None = None):
+async def get_client():
     clients = []
     for ws, client in connmgr.connected_clients.items():
         mac_addr = hex_mac(client.mac_addr)
@@ -267,18 +270,22 @@ async def get_client(client: str | None = None):
     return JSONResponse(content=clients)
 
 
+class GetConfig(BaseModel):
+    type: Literal['config', 'nvs'] = Field (Query(..., description='Configuration type'))
+
+
 @app.get("/api/config")
-async def get_config(type: str = "config"):
-    if type == "nvs":
+async def get_config(config: GetConfig = Depends()):
+    if config.type == "nvs":
         nvs = get_nvs()
         return JSONResponse(content=nvs)
-    elif type == "config":
+    elif config.type == "config":
         config = get_json_from_file(STORAGE_USER_CONFIG)
         return JSONResponse(content=config)
 
 
 @app.get("/api/device")
-async def api_get_device(device: str | None = None):
+async def api_get_device():
     devices = get_devices()
     for device in devices:
         mac_addr = hex_mac(device['mac_addr'])
@@ -329,14 +336,16 @@ async def get_ota(version: str, platform: str):
 
     return FileResponse(ota_file)
 
+class GetRelease(BaseModel):
+    type: Literal['was', 'willow'] = Field (Query(..., description='Release type'))
 
 @app.get("/api/release")
-async def api_get_release(type: str = "was"):
+async def api_get_release(release: GetRelease = Depends()):
     log.info('Got release request')
     releases = get_releases_willow()
-    if type == "willow":
+    if release.type == "willow":
         return releases
-    elif type == "was":
+    elif release.type == "was":
         was_url = get_was_url()
         if not was_url:
             raise HTTPException(status_code=500, detail="WAS URL not set")
@@ -358,22 +367,29 @@ async def api_get_release(type: str = "was"):
 
         return JSONResponse(content=releases)
 
+class PostConfig(BaseModel):
+    type: Literal['config', 'nvs'] = Field (Query(..., description='Configuration type'))
+    apply: bool = Field (Query(..., description='Apply configuration to device'))
 
 @app.post("/api/config")
-async def apply_config(request: Request, apply: bool = False, type: str = "config"):
-    if type == "config":
-        await post_config(request, apply)
+async def apply_config(request: Request, config: PostConfig = Depends()):
+    if config.type == "config":
+        await post_config(request, config.apply)
     elif type == "nvs":
-        await post_nvs(request, apply)
+        await post_nvs(request, config.apply)
+
+
+class PostDevice(BaseModel):
+    action: Literal['restart', 'update', 'config'] = Field (Query(..., description='Device action'))
 
 
 @app.post("/api/device")
-async def post_device(request: Request, action: str | None = None):
+async def post_device(request: Request, device: PostDevice = Depends()):
     data = await request.json()
 
-    if action == "restart":
+    if device.action == "restart":
         return await restart_device(data)
-    elif action == "update":
+    elif device.action == "update":
         msg = json.dumps({'cmd': 'ota_start', 'ota_url': data["ota_url"]})
         try:
             ws = connmgr.get_client_by_hostname(data["hostname"])
@@ -382,27 +398,31 @@ async def post_device(request: Request, action: str | None = None):
             log.error(f"failed to trigger OTA ({e})")
         finally:
             return
+    elif device.action == "config":
+        devices = get_devices()
+        new = True
 
-    devices = get_devices()
-    new = True
+        for i, device in enumerate(devices):
+            if device.get("mac_addr") == data['mac_addr']:
+                new = False
+                devices[i] = data
+                break
 
-    for i, device in enumerate(devices):
-        if device.get("mac_addr") == data['mac_addr']:
-            new = False
-            devices[i] = data
-            break
+        if new and len(data['mac_addr']) > 0:
+            devices.append(data)
 
-    if new and len(data['mac_addr']) > 0:
-        devices.append(data)
+        with open(STORAGE_DEVICES, "w") as devices_file:
+            json.dump(devices, devices_file)
+        devices_file.close()
 
-    with open(STORAGE_DEVICES, "w") as devices_file:
-        json.dump(devices, devices_file)
-    devices_file.close()
+
+class PostRelease(BaseModel):
+    action: Literal['cache', 'delete'] = Field (Query(..., description='Release Cache Control'))
 
 
 @app.post("/api/release")
-async def post_release(request: Request, action: str | None = None):
-    if action == "cache":
+async def post_release(request: Request, release: PostRelease = Depends()):
+    if release.action == "cache":
         data = await request.json()
 
         dir = f"./{DIR_OTA}/{data['version']}"
@@ -424,7 +444,7 @@ async def post_release(request: Request, action: str | None = None):
             return
         else:
             raise HTTPException(status_code=resp.status_code)
-    elif action == "delete":
+    elif release.action == "delete":
         data = await request.json()
         os.remove(data['path'])
 
