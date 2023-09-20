@@ -236,8 +236,8 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/api/clients")
-async def get_clients():
+@app.get("/api/client")
+async def get_client(client: str | None = None):
     clients = []
     for ws, client in connmgr.connected_clients.items():
         clients.append({
@@ -262,8 +262,8 @@ async def get_config(type: str = "config"):
         return JSONResponse(content=config)
 
 
-@app.get("/api/devices")
-async def api_get_devices():
+@app.get("/api/device")
+async def api_get_device(device: str | None = None):
     return JSONResponse(get_devices())
 
 
