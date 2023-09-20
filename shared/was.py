@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import requests
 import socket
@@ -9,41 +8,11 @@ from websockets.sync.client import connect
 
 DIR_OTA = 'storage/ota'
 URL_WILLOW_RELEASES = 'https://worker.heywillow.io/releases?format=was'
-URL_GH_RELEASES_LATEST = 'https://worker.heywillow.io/releases/latest'
 
 STORAGE_DEVICES = 'storage/devices.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
 STORAGE_USER_MULTINET = 'storage/user_multinet.json'
 STORAGE_USER_NVS = 'storage/user_nvs.json'
-
-URL_WAS_API_CLIENTS = 'http://localhost:8502/api/clients'
-URL_WAS_API_DEVICE = 'http://localhost:8502/api/device'
-URL_WAS_API_DEVICES = 'http://localhost:8502/api/devices'
-URL_WAS_API_DEVICE_RESTART = 'http://localhost:8502/api/device/restart'
-URL_WAS_API_OTA = 'http://localhost:8502/api/ota'
-URL_WAS_API_RELEASES_GITHUB = 'http://localhost:8502/api/releases/github'
-URL_WAS_API_RELEASES_INTERNAL = 'http://localhost:8502/api/releases/internal'
-URL_WAS_API_RELEASE_CACHE = 'http://localhost:8502/api/release/cache'
-URL_WAS_API_RELEASE_DELETE = 'http://localhost:8502/api/release/delete'
-
-URL_WAS_API_CONFIG = "http://localhost:8502/api/config"
-URL_WAS_API_CONFIG_APPLY = "http://localhost:8502/api/config/apply"
-URL_WAS_API_CONFIG_SAVE = "http://localhost:8502/api/config/save"
-URL_WAS_API_NVS = "http://localhost:8502/api/nvs"
-URL_WAS_API_NVS_APPLY = "http://localhost:8502/api/nvs/apply"
-URL_WAS_API_NVS_SAVE = "http://localhost:8502/api/nvs/save"
-
-
-def apply_config():
-    requests.post(f"{URL_WAS_API_CONFIG_APPLY}")
-
-
-def apply_config_host(hostname):
-    requests.post(URL_WAS_API_CONFIG_APPLY, json={'hostname': hostname})
-
-
-def apply_nvs_host(hostname):
-    requests.post(URL_WAS_API_NVS_APPLY, json={'hostname': hostname})
 
 
 def construct_url(host, port, tls=False, ws=False):
@@ -59,38 +28,6 @@ def construct_url(host, port, tls=False, ws=False):
             scheme = "http"
 
     return f"{scheme}://{host}:{port}"
-
-
-def delete_release(**kwargs):
-    data = {}
-    data['path'] = f"{DIR_OTA}/{kwargs['release']}/{kwargs['file_name']}"
-
-    requests.post(URL_WAS_API_RELEASE_DELETE, json=data)
-
-
-def get_clients():
-    response = requests.get(URL_WAS_API_CLIENTS)
-    json = response.json()
-    return json
-
-
-def get_config():
-    response = requests.get(URL_WAS_API_CONFIG)
-    json = response.json()
-    return json
-
-
-def get_device_label(mac_addr):
-    devices = get_devices()
-    for device in devices:
-        if device['mac_addr'] == mac_addr:
-            if 'label' in device:
-                return device['label']
-
-
-def get_devices():
-    response = requests.get(URL_WAS_API_DEVICES)
-    return response.json()
 
 
 def get_ha_commands_for_entity(entity):
@@ -140,12 +77,6 @@ def get_ip():
     return ip
 
 
-def get_nvs():
-    response = requests.get(URL_WAS_API_NVS)
-    json = response.json()
-    return json
-
-
 def get_release_willow_latest():
     response = requests.get(URL_WILLOW_RELEASES)
     json = response.json()
@@ -182,41 +113,6 @@ def get_tz():
 def merge_dict(dict_1, dict_2):
     result = dict_1 | dict_2
     return result
-
-
-def num_clients():
-    return (len(get_clients()))
-
-
-def ota(hostname, info, version):
-    info['version'] = version
-    if version != 'local':
-        requests.post(URL_WAS_API_RELEASE_CACHE, json=info)
-    requests.post(URL_WAS_API_OTA, json={'hostname': hostname, 'ota_url': info['was_url']})
-
-
-def post_config(json, apply=False):
-    if apply:
-        url = URL_WAS_API_CONFIG_APPLY
-    else:
-        url = URL_WAS_API_CONFIG_SAVE
-    requests.post(url, json=json)
-
-
-def post_device(data):
-    requests.post(URL_WAS_API_DEVICE, json=data)
-
-
-def post_nvs(json, apply=False):
-    if apply:
-        url = URL_WAS_API_NVS_APPLY
-    else:
-        url = URL_WAS_API_NVS_SAVE
-    requests.post(url, json=json)
-
-
-def restart_device(hostname):
-    requests.post(URL_WAS_API_DEVICE_RESTART, json={'hostname': hostname})
 
 
 def test_url(url, error_msg, ws=False):
@@ -318,7 +214,7 @@ def validate_wifi_psk(psk):
 
 
 def validate_wifi_ssid(ssid):
-    # TODO:detect non-ASCII characters (streamlit or fastapi converts them to \u.... \
+    # TODO:detect non-ASCII characters (fastapi converts them to \u.... \
     # the re.match we used in CMake doesn't catch those
     if len(ssid) < 2 or len(ssid) > 32:
         #st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
