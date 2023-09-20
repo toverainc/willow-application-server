@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from logging import getLogger
+import logging
 from requests import get
 from shutil import move
 from typing import Annotated, Dict
@@ -23,8 +23,13 @@ from shared.was import (
     merge_dict,
 )
 
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+
 app = FastAPI()
-log = getLogger("WAS")
+log = logging.getLogger("WAS")
 websocket = WebSocket
 
 app.add_middleware(
@@ -296,6 +301,7 @@ async def get_multinet():
 
 @app.get("/api/release")
 async def api_get_release(type: str = "willow"):
+    log.info('Got release request')
     if type == "willow":
         releases = get_releases_willow()
         return releases
