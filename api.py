@@ -294,13 +294,13 @@ async def get_multinet():
     return JSONResponse(content=multinet)
 
 
-@app.get("/api/releases")
+@app.get("/api/release")
 async def api_get_releases_willow():
     releases = get_releases_willow()
     return releases
 
 
-@app.get("/api/releases/internal")
+@app.get("/api/release/internal")
 async def api_get_releases_internal():
     was_url = get_was_url()
     if not was_url:
