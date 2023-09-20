@@ -13,4 +13,4 @@ services:
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
-      - was-storage:/app/storage
+      - ./storage:/app/storage
