@@ -331,7 +331,7 @@ async def get_ota(version: str, platform: str):
 
 
 @app.get("/api/release")
-async def api_get_release(type: str = "willow"):
+async def api_get_release(type: str = "was"):
     log.info('Got release request')
     releases = get_releases_willow()
     if type == "willow":
