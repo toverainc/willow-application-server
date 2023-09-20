@@ -47,6 +47,10 @@ def migrate_user_files():
             if not os.path.isfile(dest):
                 move(user_file, dest)
 
+def hex_mac(mac):
+    if type(mac) == list:
+        mac = '%02x:%02x:%02x:%02x:%02x:%02x' % (mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+    return mac
 
 class Client:
     def __init__(self, ua):
@@ -245,10 +249,11 @@ def read_root():
 async def get_client(client: str | None = None):
     clients = []
     for ws, client in connmgr.connected_clients.items():
+        mac_addr = hex_mac(client.mac_addr)
         clients.append({
             'hostname': client.hostname,
             'hw_type': client.hw_type,
-            'mac_addr': client.mac_addr,
+            'mac_addr': mac_addr,
             'ip': ws.client.host,
             'port': ws.client.port,
             'user_agent': client.ua
@@ -269,7 +274,11 @@ async def get_config(type: str = "config"):
 
 @app.get("/api/device")
 async def api_get_device(device: str | None = None):
-    return JSONResponse(get_devices())
+    devices = get_devices()
+    for device in devices:
+        mac_addr = hex_mac(device['mac_addr'])
+        device['mac_addr'] = mac_addr
+    return JSONResponse(devices)
 
 
 @app.get("/api/ha_token")
