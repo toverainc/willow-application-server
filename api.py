@@ -136,6 +136,18 @@ def get_devices():
 
     return devices
 
+async def restart_device(data):
+    if 'hostname' in data:
+        hostname = data["hostname"]
+
+    msg = json.dumps({'cmd': 'restart'})
+    try:
+        ws = connmgr.get_client_by_hostname(hostname)
+        await ws.send_text(msg)
+        return "Success"
+    except Exception as e:
+        log.error(f"failed to send restart command to {data['hostname']} ({e})")
+        return "Error"
 
 def get_json_from_file(path):
     try:
@@ -362,8 +374,11 @@ async def save_config(request: Request):
 
 
 @app.post("/api/device")
-async def post_device(request: Request):
+async def post_device(request: Request, action: str | None = None):
     data = await request.json()
+
+    if action == "restart":
+        return await restart_device(data)
 
     devices = get_devices()
     new = True
@@ -380,22 +395,6 @@ async def post_device(request: Request):
     with open(STORAGE_DEVICES, "w") as devices_file:
         json.dump(devices, devices_file)
     devices_file.close()
-
-
-@app.post("/api/device/restart")
-async def post_device_restart(request: Request):
-    data = await request.json()
-    if 'hostname' in data:
-        hostname = data["hostname"]
-
-        msg = json.dumps({'cmd': 'restart'})
-        try:
-            ws = connmgr.get_client_by_hostname(hostname)
-            await ws.send_text(msg)
-            return "Success"
-        except Exception as e:
-            log.error(f"failed to send restart command to {data['hostname']} ({e})")
-            return "Error"
 
 
 @app.post("/api/nvs/apply")
