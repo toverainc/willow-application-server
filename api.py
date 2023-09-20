@@ -374,7 +374,7 @@ class PostConfig(BaseModel):
 async def apply_config(request: Request, config: PostConfig = Depends()):
     if config.type == "config":
         await post_config(request, config.apply)
-    elif type == "nvs":
+    elif config.type == "nvs":
         await post_nvs(request, config.apply)
 
 
@@ -428,7 +428,7 @@ async def post_release(request: Request, release: PostRelease = Depends()):
         if not os.path.isdir(dir):
             os.makedirs(dir)
 
-        path = f"{dir}/{data['file_name']}"
+        path = f"{dir}/{data['platform']}.bin"
         if os.path.exists(path):
             if os.path.getsize(path) == data['size']:
                 return
