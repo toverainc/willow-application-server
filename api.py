@@ -253,7 +253,11 @@ async def get_clients():
 
 
 @app.get("/api/config")
-async def get_config():
+async def get_config(type: str | None = None):
+    if type == "nvs":
+        nvs = get_nvs()
+        return JSONResponse(content=nvs)
+
     config = get_json_from_file(STORAGE_USER_CONFIG)
     return JSONResponse(content=config)
 
@@ -288,12 +292,6 @@ async def get_ha_url():
 async def get_multinet():
     multinet = get_json_from_file(STORAGE_USER_MULTINET)
     return JSONResponse(content=multinet)
-
-
-@app.get("/api/nvs")
-async def api_get_nvs():
-    nvs = get_nvs()
-    return JSONResponse(content=nvs)
 
 
 @app.get("/api/releases")
