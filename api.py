@@ -1,9 +1,10 @@
 import json
 import os
 from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Request
-from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
+from pathlib import Path
 from requests import get
 from shutil import move
 from typing import Annotated, Dict
@@ -19,8 +20,6 @@ from shared.was import (
     construct_url,
     get_release_url,
     get_releases_willow,
-    get_releases_local,
-    merge_dict,
 )
 
 logging.basicConfig(
@@ -109,12 +108,11 @@ class ConnMgr:
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
 
-
-if not os.path.isdir(DIR_OTA):
-    os.makedirs(DIR_OTA)
+# Make sure we always have DIR_OTA
+Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
-app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
+#app.mount("/ota", StaticFiles(directory=DIR_OTA), name="ota")
 connmgr = ConnMgr()
 
 
@@ -315,65 +313,45 @@ async def get_multinet():
     return JSONResponse(content=multinet)
 
 
+@app.get("/api/ota")
+async def get_ota(version: str, platform: str):
+    ota_file = f"{DIR_OTA}/{version}/{platform}.bin"
+    if not os.path.isfile(ota_file):
+        releases = get_releases_willow()
+        for release in releases:
+            if release["name"] == version:
+                assets = release["assets"]
+                for asset in assets:
+                    if asset["hw_type"] == platform:
+                        Path(f"{DIR_OTA}/{version}").mkdir(parents=True, exist_ok=True)
+                        r = get(asset["browser_download_url"])
+                        open(ota_file, 'wb').write(r.content)
+
+    return FileResponse(ota_file)
+
+
 @app.get("/api/release")
 async def api_get_release(type: str = "willow"):
     log.info('Got release request')
+    releases = get_releases_willow()
     if type == "willow":
-        releases = get_releases_willow()
         return releases
-    elif type == "internal":
+    elif type == "was":
         was_url = get_was_url()
         if not was_url:
             raise HTTPException(status_code=500, detail="WAS URL not set")
 
-        releases_willow = get_releases_willow()
-
-        local_releases = get_releases_local(was_url)
-        releases = {}
-
-        if len(local_releases) > 0:
-            releases = merge_dict(releases, local_releases)
-
-        # Github might be rate-limiting so use try to avoid KeyError
         try:
-            for release in releases_willow:
-                tag_name = release['tag_name']
-                releases[tag_name] = {}
-                for asset in release['assets']:
-                    name = asset['name']
-                    if name == 'willow-ota-ESP32_S3_BOX.bin':
-                        releases[tag_name]['ESP32-S3-BOX'] = {}
-                        releases[tag_name]['ESP32-S3-BOX']['file_name'] = name
-                        releases[tag_name]['ESP32-S3-BOX']['willow_url'] = asset['browser_download_url']
-                        releases[tag_name]['ESP32-S3-BOX']['size'] = asset['size']
-                        releases[tag_name]['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, tag_name, name)
-                        if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                            releases[tag_name]['ESP32-S3-BOX']['cached'] = True
-                        else:
-                            releases[tag_name]['ESP32-S3-BOX']['cached'] = False
-                    elif name == 'willow-ota-ESP32_S3_BOX_3.bin':
-                        releases[tag_name]['ESP32-S3-BOX-3'] = {}
-                        releases[tag_name]['ESP32-S3-BOX-3']['file_name'] = name
-                        releases[tag_name]['ESP32-S3-BOX-3']['willow_url'] = asset['browser_download_url']
-                        releases[tag_name]['ESP32-S3-BOX-3']['size'] = asset['size']
-                        releases[tag_name]['ESP32-S3-BOX-3']['was_url'] = get_release_url(was_url, tag_name, name)
-                        if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                            releases[tag_name]['ESP32-S3-BOX-3']['cached'] = True
-                        else:
-                            releases[tag_name]['ESP32-S3-BOX-3']['cached'] = False
-                    elif name == 'willow-ota-ESP32_S3_BOX_LITE.bin':
-                        releases[tag_name]['ESP32-S3-BOX-Lite'] = {}
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['file_name'] = name
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['willow_url'] = asset['browser_download_url']
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['size'] = asset['size']
-                        releases[tag_name]['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, tag_name, name)
-                        if os.path.isfile(f"{DIR_OTA}/{tag_name}/{name}"):
-                            releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = True
-                        else:
-                            releases[tag_name]['ESP32-S3-BOX-Lite']['cached'] = False
-                # avoid releases without OTA assets
-                if len(releases[tag_name]) == 0:
-                    del releases[tag_name]
+            for release in releases:
+                tag_name = release["tag_name"]
+                assets = release["assets"]
+                for asset in assets:
+                    platform = asset["hw_type"]
+                    asset["was_url"] = get_release_url(was_url, tag_name, platform)
+                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{platform}.bin"):
+                        asset["cached"] = True
+                    else:
+                        asset["cached"] = False
         except Exception as e:
             log.error(e)
             pass

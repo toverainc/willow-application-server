@@ -160,49 +160,11 @@ def get_releases_willow():
     return releases.json()
 
 
-def get_releases_local(was_url):
-    releases = {'local': {}}
-
-    name = 'willow-ota-ESP32_S3_BOX.bin'
-    if os.path.isfile(f"{DIR_OTA}/local/{name}"):
-        releases['local']['ESP32-S3-BOX'] = {}
-        releases['local']['ESP32-S3-BOX']['cached'] = True
-        releases['local']['ESP32-S3-BOX']['file_name'] = name
-        releases['local']['ESP32-S3-BOX']['was_url'] = get_release_url(was_url, "local", name)
-
-    name = 'willow-ota-ESP32_S3_BOX_3.bin'
-    if os.path.isfile(f"{DIR_OTA}/local/{name}"):
-        releases['local']['ESP32-S3-BOX-3'] = {}
-        releases['local']['ESP32-S3-BOX-3']['cached'] = True
-        releases['local']['ESP32-S3-BOX-3']['file_name'] = name
-        releases['local']['ESP32-S3-BOX-3']['was_url'] = get_release_url(was_url, "local", name)
-
-    name = 'willow-ota-ESP32_S3_BOX_LITE.bin'
-    if os.path.isfile(f"{DIR_OTA}/local/{name}"):
-        releases['local']['ESP32-S3-BOX-Lite'] = {}
-        releases['local']['ESP32-S3-BOX-Lite']['cached'] = True
-        releases['local']['ESP32-S3-BOX-Lite']['file_name'] = name
-        releases['local']['ESP32-S3-BOX-Lite']['was_url'] = get_release_url(was_url, "local", name)
-
-    if len(releases['local']) == 0:
-        return {}
-
-    return releases
-
-
-def get_releases_internal():
-    resp = requests.get(f"{URL_WAS_API_RELEASES_INTERNAL}")
-    if resp.status_code == 200:
-        return resp.json()
-    else:
-        return False
-
-
-def get_release_url(was_url, version, filename):
+def get_release_url(was_url, version, platform):
     url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
     host = url_parts.group(1)
     port = url_parts.group(2)
-    url = f"http://{host}:{port}/ota/{version}/{filename}"
+    url = f"http://{host}:{port}/api/ota?version={version}&platform={platform}"
     return url
 
 
