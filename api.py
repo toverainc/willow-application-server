@@ -253,13 +253,13 @@ async def get_clients():
 
 
 @app.get("/api/config")
-async def get_config(type: str | None = None):
+async def get_config(type: str = "config"):
     if type == "nvs":
         nvs = get_nvs()
         return JSONResponse(content=nvs)
-
-    config = get_json_from_file(STORAGE_USER_CONFIG)
-    return JSONResponse(content=config)
+    elif type == "config":
+        config = get_json_from_file(STORAGE_USER_CONFIG)
+        return JSONResponse(content=config)
 
 
 @app.get("/api/devices")
@@ -361,14 +361,12 @@ async def api_get_releases_internal():
     return JSONResponse(content=releases)
 
 
-@app.post("/api/config/apply")
-async def apply_config(request: Request):
-    await post_config(request, True)
-
-
-@app.post("/api/config/save")
-async def save_config(request: Request):
-    await post_config(request, False)
+@app.post("/api/config")
+async def apply_config(request: Request, apply: bool = False, type: str = "config"):
+    if type == "config":
+        await post_config(request, apply)
+    elif type == "nvs":
+        await post_nvs(request, apply)
 
 
 @app.post("/api/device")
@@ -393,16 +391,6 @@ async def post_device(request: Request, action: str | None = None):
     with open(STORAGE_DEVICES, "w") as devices_file:
         json.dump(devices, devices_file)
     devices_file.close()
-
-
-@app.post("/api/nvs/apply")
-async def apply_nvs(request: Request):
-    await post_nvs(request, True)
-
-
-@app.post("/api/nvs/save")
-async def save_nvs(request: Request):
-    await post_nvs(request, False)
 
 
 @app.post("/api/release/cache")
