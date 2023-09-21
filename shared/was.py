@@ -9,7 +9,7 @@ from websockets.sync.client import connect
 DIR_OTA = '/app/storage/ota'
 URL_WILLOW_RELEASES = 'https://worker.heywillow.io/releases?format=was'
 
-STORAGE_DEVICES = 'storage/devices.json'
+STORAGE_USER_CLIENT_CONFIG = 'storage/user_client_config.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
 STORAGE_USER_MULTINET = 'storage/user_multinet.json'
 STORAGE_USER_NVS = 'storage/user_nvs.json'

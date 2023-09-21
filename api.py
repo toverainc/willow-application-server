@@ -18,7 +18,7 @@ from typing import Literal
 
 from shared.was import (
     DIR_OTA,
-    STORAGE_DEVICES,
+    STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
@@ -152,12 +152,12 @@ def get_config_ws():
 def get_devices():
     devices = []
 
-    if os.path.isfile(STORAGE_DEVICES):
-        with open(STORAGE_DEVICES, "r") as devices_file:
+    if os.path.isfile(STORAGE_USER_CLIENT_CONFIG):
+        with open(STORAGE_USER_CLIENT_CONFIG, "r") as devices_file:
             devices = json.load(devices_file)
         devices_file.close()
     else:
-        with open(STORAGE_DEVICES, "x") as devices_file:
+        with open(STORAGE_USER_CLIENT_CONFIG, "x") as devices_file:
             json.dump(devices, devices_file)
         devices_file.close()
 
@@ -480,7 +480,7 @@ async def api_post_device(request: Request, device: PostDevice = Depends()):
         if new and len(data['mac_addr']) > 0:
             devices.append(data)
 
-        with open(STORAGE_DEVICES, "w") as devices_file:
+        with open(STORAGE_USER_CLIENT_CONFIG, "w") as devices_file:
             json.dump(devices, devices_file)
         devices_file.close()
 
