@@ -6,7 +6,7 @@ import socket
 from num2words import num2words
 from websockets.sync.client import connect
 
-DIR_OTA = 'storage/ota'
+DIR_OTA = '/app/storage/ota'
 URL_WILLOW_RELEASES = 'https://worker.heywillow.io/releases?format=was'
 
 STORAGE_DEVICES = 'storage/devices.json'
