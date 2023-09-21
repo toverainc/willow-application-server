@@ -323,15 +323,18 @@ def api_redirect_admin():
 @app.get("/api/client")
 async def api_get_client():
     clients = []
+    macs = []
     for ws, client in connmgr.connected_clients.items():
-        clients.append({
-            'hostname': client.hostname,
-            'hw_type': client.hw_type,
-            'mac_addr': client.mac_addr,
-            'ip': ws.client.host,
-            'port': ws.client.port,
-            'user_agent': client.ua
-        })
+        if not client.mac_addr in macs:
+            clients.append({
+                'hostname': client.hostname,
+                'hw_type': client.hw_type,
+                'mac_addr': client.mac_addr,
+                'ip': ws.client.host,
+                'port': ws.client.port,
+                'user_agent': client.ua
+            })
+            macs.append(client.mac_addr)
 
     return JSONResponse(content=clients)
 
