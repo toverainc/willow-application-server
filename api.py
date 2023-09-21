@@ -324,11 +324,10 @@ def api_redirect_admin():
 async def api_get_client():
     clients = []
     for ws, client in connmgr.connected_clients.items():
-        mac_addr = hex_mac(client.mac_addr)
         clients.append({
             'hostname': client.hostname,
             'hw_type': client.hw_type,
-            'mac_addr': mac_addr,
+            'mac_addr': client.mac_addr,
             'ip': ws.client.host,
             'port': ws.client.port,
             'user_agent': client.ua
@@ -541,7 +540,8 @@ async def websocket_endpoint(
                     hw_type = msg["hello"]["hw_type"].upper()
                     connmgr.update_client(websocket, "hw_type", hw_type)
                 if "mac_addr" in msg["hello"]:
-                    connmgr.update_client(websocket, "mac_addr", msg["hello"]["mac_addr"])
+                    mac_addr = hex_mac(msg["hello"]["mac_addr"])
+                    connmgr.update_client(websocket, "mac_addr", mac_addr)
             else:
                 await connmgr.broadcast(websocket, data)
     except WebSocketDisconnect:
