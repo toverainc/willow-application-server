@@ -354,9 +354,6 @@ async def api_get_config(config: GetConfig = Depends()):
 @app.get("/api/device")
 async def api_get_device():
     devices = get_devices()
-    for device in devices:
-        mac_addr = hex_mac(device['mac_addr'])
-        device['mac_addr'] = mac_addr
     return JSONResponse(devices)
 
 
