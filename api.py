@@ -59,6 +59,14 @@ def hex_mac(mac):
         mac = '%02x:%02x:%02x:%02x:%02x:%02x' % (mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
     return mac
 
+def is_safe_path(basedir, path, follow_symlinks=True):
+    # resolves symbolic links
+    if follow_symlinks:
+        matchpath = os.path.realpath(path)
+    else:
+        matchpath = os.path.abspath(path)
+    return basedir == os.path.commonpath((basedir, matchpath))
+
 class Client:
     def __init__(self, ua):
         self.hostname = "unknown"
@@ -322,6 +330,8 @@ async def get_multinet():
 @app.get("/api/ota")
 async def get_ota(version: str, platform: str):
     ota_file = f"{DIR_OTA}/{version}/{platform}.bin"
+    if not is_safe_path(DIR_OTA, ota_file):
+        return
     if not os.path.isfile(ota_file):
         releases = get_releases_willow()
         for release in releases:
@@ -425,6 +435,9 @@ async def post_release(request: Request, release: PostRelease = Depends()):
         data = await request.json()
 
         dir = f"{DIR_OTA}/{data['version']}"
+        # Check for safe path
+        if not is_safe_path(DIR_OTA, dir):
+            return
         Path(dir).mkdir(parents=True, exist_ok=True)
 
         path = f"{dir}/{data['platform']}.bin"
@@ -443,7 +456,9 @@ async def post_release(request: Request, release: PostRelease = Depends()):
             raise HTTPException(status_code=resp.status_code)
     elif release.action == "delete":
         data = await request.json()
-        os.remove(data['path'])
+        path = data['path']
+        if is_safe_path(DIR_OTA, path):
+            os.remove(path)
 
 
 @app.websocket("/ws")
