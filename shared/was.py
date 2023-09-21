@@ -77,11 +77,6 @@ def get_ip():
     return ip
 
 
-def get_releases_willow():
-    releases = requests.get(URL_WILLOW_RELEASES)
-    return releases.json()
-
-
 # TODO: Support HTTPs
 def get_release_url(was_url, version, platform):
     url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
