@@ -541,7 +541,8 @@ async def websocket_endpoint(
                 if "hostname" in msg["hello"]:
                     connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
                 if "hw_type" in msg["hello"]:
-                    connmgr.update_client(websocket, "hw_type", msg["hello"]["hw_type"])
+                    hw_type = msg["hello"]["hw_type"].upper()
+                    connmgr.update_client(websocket, "hw_type", hw_type)
                 if "mac_addr" in msg["hello"]:
                     connmgr.update_client(websocket, "mac_addr", msg["hello"]["mac_addr"])
             else:
