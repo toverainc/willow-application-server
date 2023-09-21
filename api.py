@@ -1,3 +1,4 @@
+from hashlib import sha256
 import json
 import os
 from fastapi import FastAPI, Depends, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Query, Request
@@ -5,6 +6,8 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Red
 from fastapi.staticfiles import StaticFiles
 import logging
 from pathlib import Path
+import random
+import time
 from requests import get
 from shutil import move
 from typing import Annotated, Dict
@@ -19,9 +22,9 @@ from shared.was import (
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
+    URL_WILLOW_RELEASES,
     construct_url,
     get_release_url,
-    get_releases_willow,
 )
 
 logging.basicConfig(
@@ -195,6 +198,63 @@ def get_was_url():
     except Exception:
         return False
 
+
+# TODO: Find a better way but we need to handle every error possible
+def get_releases_local():
+    local_dir = f"{DIR_OTA}/local"
+    assets = []
+    if not os.path.exists(local_dir):
+        return assets
+
+    url = "https://heywillow.io"
+
+    for asset_name in os.listdir(local_dir):
+        if '.bin' in asset_name:
+            file = f"{DIR_OTA}/local/{asset_name}"
+            created_at = os.path.getctime(file)
+            created_at = time.ctime(created_at)
+            created_at = time.strptime(created_at)
+            created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", created_at)
+            with open(file,"rb") as f:
+                bytes = f.read()
+                checksum = sha256(bytes).hexdigest()
+            asset = {}
+            asset["name"] = f"willow-ota-{asset_name}"
+            asset["platform"] = asset_name.replace('.bin', '')
+            asset["platform_name"] = asset["platform"]
+            asset["platform_image"] = "https://heywillow.io/images/esp32_s3_box.png"
+            asset["hw_type"] = asset["platform"]
+            asset["build_type"] = "ota"
+            asset["url"] = url
+            asset["id"] = random.randint(10, 99)
+            asset["content_type"] = "raw"
+            asset["size"] = os.path.getsize(file)
+            asset["created_at"] = created_at
+            asset["browser_download_url"] = url
+            asset["sha256"] = checksum
+            assets.append(asset)
+
+    if assets == []:
+        return []
+    else:
+        return [{"name": "local",
+                 "tag_name": "local",
+                 "id": random.randint(10, 99),
+                 "url": url,
+                 "html_url": url,
+                 "assets": assets}]
+
+
+def get_releases_willow():
+    releases = get(URL_WILLOW_RELEASES)
+    releases = releases.json()
+    try:
+        releases_local = get_releases_local()
+    except:
+        pass
+    else:
+        releases = releases_local + releases
+    return releases
 
 async def post_config(request, apply=False):
     data = await request.json()
