@@ -316,12 +316,12 @@ async def startup_event():
 
 
 @app.get("/", response_class=RedirectResponse)
-def redirect_admin():
+def api_redirect_admin():
     return "/admin"
 
 
 @app.get("/api/client")
-async def get_client():
+async def api_get_client():
     clients = []
     for ws, client in connmgr.connected_clients.items():
         mac_addr = hex_mac(client.mac_addr)
@@ -361,7 +361,7 @@ async def api_get_device():
 
 
 @app.get("/api/ha_token")
-async def get_ha_token():
+async def api_get_ha_token():
     try:
         resp = await get_config()
         config = json.loads(resp.body)
@@ -371,7 +371,7 @@ async def get_ha_token():
 
 
 @app.get("/api/ha_url")
-async def get_ha_url():
+async def api_get_ha_url():
     try:
         resp = await get_config()
         config = json.loads(resp.body)
@@ -382,13 +382,13 @@ async def get_ha_url():
 
 
 @app.get("/api/multinet")
-async def get_multinet():
+async def api_get_multinet():
     multinet = get_json_from_file(STORAGE_USER_MULTINET)
     return JSONResponse(content=multinet)
 
 
 @app.get("/api/ota")
-async def get_ota(version: str, platform: str):
+async def api_get_ota(version: str, platform: str):
     ota_file = f"{DIR_OTA}/{version}/{platform}.bin"
     if not is_safe_path(DIR_OTA, ota_file):
         return
@@ -441,7 +441,7 @@ class PostConfig(BaseModel):
     apply: bool = Field (Query(..., description='Apply configuration to device'))
 
 @app.post("/api/config")
-async def apply_config(request: Request, config: PostConfig = Depends()):
+async def api_apply_config(request: Request, config: PostConfig = Depends()):
     if config.type == "config":
         await post_config(request, config.apply)
     elif config.type == "nvs":
@@ -453,7 +453,7 @@ class PostDevice(BaseModel):
 
 
 @app.post("/api/device")
-async def post_device(request: Request, device: PostDevice = Depends()):
+async def api_post_device(request: Request, device: PostDevice = Depends()):
     data = await request.json()
 
     if device.action == "restart":
@@ -490,7 +490,7 @@ class PostRelease(BaseModel):
 
 
 @app.post("/api/release")
-async def post_release(request: Request, release: PostRelease = Depends()):
+async def api_post_release(request: Request, release: PostRelease = Depends()):
     if release.action == "cache":
         data = await request.json()
 
