@@ -73,15 +73,15 @@ def is_safe_path(basedir, path, follow_symlinks=True):
 class Client:
     def __init__(self, ua):
         self.hostname = "unknown"
-        self.hw_type = "unknown"
+        self.platform = "unknown"
         self.mac_addr = []
         self.ua = ua
 
     def set_hostname(self, hostname):
         self.hostname = hostname
 
-    def set_hw_type(self, hw_type):
-        self.hw_type = hw_type
+    def set_platform(self, platform):
+        self.platform = platform
 
     def set_mac_addr(self, mac_addr):
         self.mac_addr = mac_addr
@@ -116,8 +116,8 @@ class ConnMgr:
     def update_client(self, ws, key, value):
         if key == "hostname":
             self.connected_clients[ws].set_hostname(value)
-        elif key == "hw_type":
-            self.connected_clients[ws].set_hw_type(value)
+        elif key == "platform":
+            self.connected_clients[ws].set_platform(value)
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
 
@@ -225,7 +225,6 @@ def get_releases_local():
             asset["platform"] = asset_name.replace('.bin', '')
             asset["platform_name"] = asset["platform"]
             asset["platform_image"] = "https://heywillow.io/images/esp32_s3_box.png"
-            asset["hw_type"] = asset["platform"]
             asset["build_type"] = "ota"
             asset["url"] = url
             asset["id"] = random.randint(10, 99)
@@ -322,17 +321,28 @@ def api_redirect_admin():
 
 @app.get("/api/client")
 async def api_get_client():
+    devices = get_devices()
     clients = []
     macs = []
+    labels = {}
+
+    # This is ugly but it provides a combined response
     for ws, client in connmgr.connected_clients.items():
         if not client.mac_addr in macs:
+            labels.update({client.mac_addr: None})
+            for device in devices:
+                if device["mac_addr"] == client.mac_addr:
+                    if device["label"]:
+                        labels.update({client.mac_addr: device["label"]})
+            version = client.ua.replace("Willow/", "")
             clients.append({
                 'hostname': client.hostname,
-                'hw_type': client.hw_type,
+                'platform': client.platform,
                 'mac_addr': client.mac_addr,
                 'ip': ws.client.host,
                 'port': ws.client.port,
-                'user_agent': client.ua
+                'version': version,
+                'label': labels[client.mac_addr]
             })
             macs.append(client.mac_addr)
 
@@ -351,12 +361,6 @@ async def api_get_config(config: GetConfig = Depends()):
     elif config.type == "config":
         config = get_json_from_file(STORAGE_USER_CONFIG)
         return JSONResponse(content=config)
-
-
-@app.get("/api/device")
-async def api_get_device():
-    devices = get_devices()
-    return JSONResponse(devices)
 
 
 @app.get("/api/ha_token")
@@ -397,7 +401,7 @@ async def api_get_ota(version: str, platform: str):
             if release["name"] == version:
                 assets = release["assets"]
                 for asset in assets:
-                    if asset["hw_type"] == platform:
+                    if asset["platform"] == platform:
                         Path(f"{DIR_OTA}/{version}").mkdir(parents=True, exist_ok=True)
                         r = get(asset["browser_download_url"])
                         open(ota_file, 'wb').write(r.content)
@@ -423,7 +427,7 @@ async def api_get_release(release: GetRelease = Depends()):
                 tag_name = release["tag_name"]
                 assets = release["assets"]
                 for asset in assets:
-                    platform = asset["hw_type"]
+                    platform = asset["platform"]
                     asset["was_url"] = get_release_url(was_url, tag_name, platform)
                     if os.path.isfile(f"{DIR_OTA}/{tag_name}/{platform}.bin"):
                         asset["cached"] = True
@@ -540,8 +544,8 @@ async def websocket_endpoint(
                 if "hostname" in msg["hello"]:
                     connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
                 if "hw_type" in msg["hello"]:
-                    hw_type = msg["hello"]["hw_type"].upper()
-                    connmgr.update_client(websocket, "hw_type", hw_type)
+                    platform = msg["hello"]["hw_type"].upper()
+                    connmgr.update_client(websocket, "platform", platform)
                 if "mac_addr" in msg["hello"]:
                     mac_addr = hex_mac(msg["hello"]["mac_addr"])
                     connmgr.update_client(websocket, "mac_addr", mac_addr)
