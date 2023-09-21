@@ -451,12 +451,12 @@ async def api_apply_config(request: Request, config: PostConfig = Depends()):
         await post_nvs(request, config.apply)
 
 
-class PostDevice(BaseModel):
-    action: Literal['restart', 'update', 'config'] = Field (Query(..., description='Device action'))
+class PostClient(BaseModel):
+    action: Literal['restart', 'update', 'config'] = Field (Query(..., description='Client action'))
 
 
-@app.post("/api/device")
-async def api_post_device(request: Request, device: PostDevice = Depends()):
+@app.post("/api/client")
+async def api_post_client(request: Request, device: PostClient = Depends()):
     data = await request.json()
 
     if device.action == "restart":
