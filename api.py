@@ -187,9 +187,11 @@ def get_json_from_file(path):
     return data
 
 
+def get_config():
+    return get_json_from_file(STORAGE_USER_CONFIG)
+
 def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
-
 
 def get_was_url():
     try:
@@ -260,8 +262,7 @@ async def post_config(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
         hostname = data["hostname"]
-        data = await get_config()
-        data = json.loads(data.body)
+        data = get_config()
         msg = build_msg(json.dumps(data), "config")
         try:
             ws = connmgr.get_client_by_hostname(hostname)
@@ -284,8 +285,7 @@ async def post_nvs(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
         hostname = data["hostname"]
-        data = await get_nvs()
-        data = json.loads(data.body)
+        data = get_nvs()
         msg = build_msg(json.dumps(data), "nvs")
         try:
             ws = connmgr.get_client_by_hostname(hostname)
@@ -342,7 +342,7 @@ class GetConfig(BaseModel):
 
 
 @app.get("/api/config")
-async def get_config(config: GetConfig = Depends()):
+async def api_get_config(config: GetConfig = Depends()):
     if config.type == "nvs":
         nvs = get_nvs()
         return JSONResponse(content=nvs)
