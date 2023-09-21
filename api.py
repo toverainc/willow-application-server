@@ -222,6 +222,7 @@ def get_releases_local():
                 checksum = sha256(bytes).hexdigest()
             asset = {}
             asset["name"] = f"willow-ota-{asset_name}"
+            asset["tag_name"] = f"willow-ota-{asset_name}"
             asset["platform"] = asset_name.replace('.bin', '')
             asset["platform_name"] = asset["platform"]
             asset["platform_image"] = "https://heywillow.io/images/esp32_s3_box.png"
