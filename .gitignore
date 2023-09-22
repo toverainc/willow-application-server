@@ -163,6 +163,4 @@ cython_debug/
 gen-tz.py
 static/
 tz.json
-storage/user_config.json
-storage/user_multinet.json
-storage/user_nvs.json
+storage
