@@ -441,6 +441,10 @@ async def api_get_ota(ota: GetOta = Depends()):
                         r = get(asset["browser_download_url"])
                         open(ota_file, 'wb').write(r.content)
 
+    # If we still don't have the file return 404 - the platform and/or version doesn't exist
+    if not os.path.isfile(ota_file):
+        raise HTTPException(status_code=404, detail="OTA File Not Found")
+
     return FileResponse(ota_file)
 
 class GetRelease(BaseModel):
