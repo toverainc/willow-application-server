@@ -1,3 +1,4 @@
+import asyncio
 from hashlib import sha256
 import json
 import os
@@ -11,6 +12,7 @@ import time
 from requests import get
 from shutil import move
 from typing import Annotated, Dict
+from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -40,6 +42,7 @@ app = FastAPI(title="Willow Application Server",
               redoc_url="/redoc")
 
 log = logging.getLogger("WAS")
+wake_session = None
 websocket = WebSocket
 
 app.add_middleware(
@@ -120,6 +123,44 @@ class ConnMgr:
             self.connected_clients[ws].set_platform(value)
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
+
+class WakeEvent:
+    def __init__(self, client, volume):
+        self.client = client
+        self.volume = volume
+
+class WakeSession:
+    def __init__(self):
+        self.events = []
+        self.id = uuid4()
+        self.ts = time.time()
+        log.error(f"WakeSession with ID {self.id} created")
+
+    def add_event(self, event):
+        log.error(f"WakeSession {self.id} adding event {event}")
+        self.events.append(event)
+
+    async def cleanup(self, timeout=200):
+        await asyncio.sleep(timeout / 1000)
+        max_volume = -1000.0
+        winner = None
+        for event in self.events:
+            if event.volume > max_volume:
+                max_volume = event.volume
+                winner = event.client
+
+        # notify winner first
+        await winner.send_text(json.dumps({'wake_result': {'won': True}}))
+
+        for event in self.events:
+            if event.client != winner:
+                await event.client.send_text(json.dumps({'wake_result': {'won': False}}))
+
+        log.error(f"Terminating WakeSession with ID {self.id}. Winner: {winner}")
+        global wake_session
+        wake_session = None
+
+
 
 # Make sure we always have DIR_OTA
 Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
@@ -537,6 +578,20 @@ async def websocket_endpoint(
             data = await websocket.receive_text()
             log.info(str(data))
             msg = json.loads(data)
+
+            # latency sensitive so handle first
+            if "wake_start" in msg:
+                global wake_session
+                if wake_session is None:
+                    wake_session = WakeSession()
+                    asyncio.create_task(wake_session.cleanup())
+                if "wake_volume" in msg["wake_start"]:
+                    wake_event = WakeEvent(websocket, msg["wake_start"]["wake_volume"])
+                    wake_session.add_event(wake_event)
+
+            elif "wake_end" in msg:
+                pass
+
             if "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_msg(get_config_ws(), "config"))
