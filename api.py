@@ -6,6 +6,7 @@ from fastapi import FastAPI, Depends, Header, HTTPException, WebSocket, WebSocke
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
+import magic
 from pathlib import Path
 import random
 import time
@@ -19,6 +20,7 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 from shared.was import (
+    DIR_ASSET,
     DIR_OTA,
     STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
@@ -52,6 +54,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def get_mime_type(filename):
+    mime_type = magic.Magic(mime=True).from_file(filename)
+    return mime_type
+
 
 def migrate_user_files():
     for user_file in ['user_config.json', 'user_multinet.json', 'user_nvs.json']:
@@ -365,6 +373,33 @@ async def startup_event():
 @app.get("/", response_class=RedirectResponse)
 def api_redirect_admin():
     return "/admin"
+
+
+class GetAsset(BaseModel):
+    asset: str = Field (Query(..., description='Asset'))
+    type: Literal['audio', 'other'] = Field (Query(..., description='Asset type'))
+
+@app.get("/api/asset")
+async def api_get_asset(asset: GetAsset = Depends()):
+    asset_file = f"{DIR_ASSET}/{asset.type}/{asset.asset}"
+    if not is_safe_path(DIR_ASSET, asset_file):
+        return
+
+    # If we don't have the asset file return 404
+    if not os.path.isfile(asset_file):
+        raise HTTPException(status_code=404, detail="Asset File Not Found")
+
+    # Use libmagic to determine MIME type to be really sure
+    magic_mime_type = get_mime_type(asset_file)
+
+    if asset.type == "other":
+        return FileResponse(asset_file, media_type=magic_mime_type)
+
+    # Only support audio formats supported by Willow
+    if magic_mime_type == "audio/flac" or magic_mime_type == "audio/x-wav":
+            return FileResponse(asset_file, media_type=magic_mime_type)
+    else:
+        raise HTTPException(status_code=404, detail="Audio Asset wrong file format")
 
 
 @app.get("/api/client")
