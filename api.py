@@ -231,8 +231,14 @@ def get_json_from_file(path):
 def get_config():
     return get_json_from_file(STORAGE_USER_CONFIG)
 
+
+def get_multinet():
+    return get_json_from_file(STORAGE_USER_MULTINET)
+
+
 def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
+
 
 def get_was_url():
     try:
@@ -392,7 +398,7 @@ async def api_get_client():
 
 
 class GetConfig(BaseModel):
-    type: Literal['config', 'nvs'] = Field (Query(..., description='Configuration type'))
+    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet'] = Field (Query(..., description='Configuration type'))
 
 
 @app.get("/api/config")
@@ -401,36 +407,18 @@ async def api_get_config(config: GetConfig = Depends()):
         nvs = get_nvs()
         return JSONResponse(content=nvs)
     elif config.type == "config":
-        config = get_json_from_file(STORAGE_USER_CONFIG)
+        config = get_config()
         return JSONResponse(content=config)
-
-
-@app.get("/api/ha_token")
-async def api_get_ha_token():
-    try:
-        resp = await get_config()
-        config = json.loads(resp.body)
+    elif config.type == "ha_token":
+        config = get_config()
         return PlainTextResponse(config["hass_token"])
-    except Exception as e:
-        return str(e)
-
-
-@app.get("/api/ha_url")
-async def api_get_ha_url():
-    try:
-        resp = await get_config()
-        config = json.loads(resp.body)
+    elif config.type == "ha_url":
+        config = get_config()
         url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
         return PlainTextResponse(url)
-    except Exception as e:
-        return str(e)
-
-
-@app.get("/api/multinet")
-async def api_get_multinet():
-    multinet = get_json_from_file(STORAGE_USER_MULTINET)
-    return JSONResponse(content=multinet)
-
+    elif config.type == "multinet":
+        config = get_multinet()
+        return JSONResponse(content=config)
 
 @app.get("/api/ota")
 async def api_get_ota(version: str, platform: str):
