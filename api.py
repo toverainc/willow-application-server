@@ -425,6 +425,7 @@ class GetOta(BaseModel):
     version: str = Field (Query(..., description='OTA Version'))
     platform: str = Field (Query(..., description='OTA Platform'))
 
+
 @app.get("/api/ota")
 async def api_get_ota(ota: GetOta = Depends()):
     ota_file = f"{DIR_OTA}/{ota.version}/{ota.platform}.bin"
