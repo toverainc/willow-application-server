@@ -35,18 +35,18 @@ LOG_LEVEL=${LOG_LEVEL:-debug}
 LISTEN_IP=${LISTEN_IP:-0.0.0.0}
 
 TAG=${TAG:-latest}
-NAME=${NAME:was}
+
+# Torture delay
+TORTURE_DELAY=${TORTURE_DELAY:-300}
 
 # Reachable WAS IP for the "default" interface
 WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
-
-TAG=${TAG:-latest}
-NAME=${NAME:was}
 
 set +a
 
 if [ -z "$WAS_IP" ]; then
     echo "Could not determine WAS IP address - you will need to add it to .env"
+    exit 1
 else
     echo "WAS IP is $WAS_IP"
 fi
@@ -72,8 +72,8 @@ build-docker() {
 }
 
 gen-tz() {
-    curl --output gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/gen-tz.py
-    python3 gen-tz.py --json > tz.json
+    curl --output misc/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/gen-tz.py
+    python3 misc/gen-tz.py --json > tz.json
 }
 
 shell() {
@@ -92,6 +92,10 @@ freeze-requirements)
     freeze_requirements
 ;;
 
+gen-tz)
+    gen-tz
+;;
+
 start|run|up)
     dep_check
     shift
@@ -106,6 +110,19 @@ stop|down)
 
 shell|docker)
     shell
+;;
+
+torture)
+    echo "Starting WAS device torture test"
+    docker compose down
+    while true; do
+        docker compose up -d
+        echo "Sleeping for $TORTURE_DELAY"
+        sleep $TORTURE_DELAY
+        docker compose down
+        "Sleeping for $TORTURE_DELAY"
+        sleep $TORTURE_DELAY
+    done
 ;;
 
 *)
