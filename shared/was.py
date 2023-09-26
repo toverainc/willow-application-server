@@ -8,7 +8,7 @@ from websockets.sync.client import connect
 
 DIR_ASSET = '/app/storage/asset'
 DIR_OTA = '/app/storage/ota'
-URL_WILLOW_RELEASES = 'https://worker.heywillow.io/releases?format=was'
+URL_WILLOW_RELEASES = 'https://worker.heywillow.io/api/release?format=was'
 
 STORAGE_USER_CLIENT_CONFIG = 'storage/user_client_config.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
