@@ -9,6 +9,7 @@ import logging
 import magic
 from pathlib import Path
 import random
+import requests
 import time
 from requests import get
 from shutil import move
@@ -17,7 +18,7 @@ from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 
 from shared.was import (
     DIR_ASSET,
@@ -27,6 +28,7 @@ from shared.was import (
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
     URL_WILLOW_RELEASES,
+    URL_WILLOW_CONFIG,
     construct_url,
     get_release_url,
 )
@@ -434,10 +436,15 @@ async def api_get_client():
 
 class GetConfig(BaseModel):
     type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet'] = Field (Query(..., description='Configuration type'))
-
+    default: Optional[bool] = False
 
 @app.get("/api/config")
 async def api_get_config(config: GetConfig = Depends()):
+
+    if config.default:
+        default_config = requests.get(f"{URL_WILLOW_CONFIG}?type={config.type}").json()
+        return default_config
+
     if config.type == "nvs":
         nvs = get_nvs()
         return JSONResponse(content=nvs)
