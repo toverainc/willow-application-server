@@ -22,7 +22,7 @@ git clone https://github.com/toverainc/willow-application-server.git && cd willo
 ```./utils.sh run```
 
 ## Configure and update Willow devices
-Visit ```http://my_was_host:8501``` in your browser.
+Visit ```http://my_was_host:8502``` in your browser.
 
 ## OTA
 We list releases with OTA assets. Select the wanted release and click the OTA button. If the release is not already cached in WAS, WAS will download the binary from Github and cache it, then instruct Willow to start OTA with the URL of the cached asset. This makes it possible to run Willow in an isolated VLAN without Internet access.
