@@ -48,7 +48,7 @@ if [ -z "$WAS_IP" ]; then
     echo "Could not determine WAS IP address - you will need to add it to .env"
     exit 1
 else
-    echo "WAS IP is $WAS_IP"
+    echo "WAS Web UI URL is http://$WAS_IP:$API_LISTEN_PORT"
 fi
 
 set +a
