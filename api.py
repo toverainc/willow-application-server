@@ -646,6 +646,9 @@ async def websocket_endpoint(
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_msg(get_config_ws(), "config"))
 
+            elif "goodbye" in msg:
+                connmgr.disconnect(websocket)
+
             elif "hello" in msg:
                 if "hostname" in msg["hello"]:
                     connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
