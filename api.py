@@ -443,7 +443,10 @@ async def api_get_config(config: GetConfig = Depends()):
 
     if config.default:
         default_config = requests.get(f"{URL_WILLOW_CONFIG}?type={config.type}").json()
-        return default_config
+        if type(default_config) == dict:
+            return default_config
+        else:
+            raise HTTPException(status_code=400, detail="Invalid default config")
 
     if config.type == "nvs":
         nvs = get_nvs()
