@@ -431,7 +431,13 @@ async def api_get_client():
             })
             macs.append(client.mac_addr)
 
-    return JSONResponse(content=clients)
+    # Sort connected clients by label if we have it
+    try:
+        sorted_clients = sorted(clients, key=lambda x: x['label'])
+    except:
+        sorted_clients = clients
+
+    return JSONResponse(content=sorted_clients)
 
 
 class GetConfig(BaseModel):
