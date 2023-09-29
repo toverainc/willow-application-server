@@ -10,6 +10,7 @@ import magic
 from pathlib import Path
 import random
 import requests
+import shutil
 import time
 from requests import get
 from shutil import move
@@ -582,7 +583,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
 
 class PostRelease(BaseModel):
     action: Literal['cache', 'delete'] = Field (Query(..., description='Release Cache Control'))
-
+    version: str = Field (Query(..., description='Version'))
 
 @app.post("/api/release")
 async def api_post_release(request: Request, release: PostRelease = Depends()):
@@ -606,15 +607,16 @@ async def api_post_release(request: Request, release: PostRelease = Depends()):
         if resp.status_code == 200:
             with open(path, "wb") as fw:
                 fw.write(resp.content)
-            return
         else:
             raise HTTPException(status_code=resp.status_code)
     elif release.action == "delete":
-        data = await request.json()
-        path = data['path']
+        path = f"{DIR_OTA}/{release.version}"
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="Version provided not cached")
         if is_safe_path(DIR_OTA, path):
-            os.remove(path)
-
+            shutil.rmtree(path)
+    response = {"action": release.action, "status": "success"}
+    return JSONResponse(content=response)
 
 @app.websocket("/ws")
 async def websocket_endpoint(
