@@ -144,10 +144,10 @@ class WakeSession:
         self.events = []
         self.id = uuid4()
         self.ts = time.time()
-        log.error(f"WakeSession with ID {self.id} created")
+        log.debug(f"WakeSession with ID {self.id} created")
 
     def add_event(self, event):
-        log.error(f"WakeSession {self.id} adding event {event}")
+        log.debug(f"WakeSession {self.id} adding event {event}")
         self.events.append(event)
 
     async def cleanup(self, timeout=200):
@@ -166,7 +166,7 @@ class WakeSession:
             if event.client != winner:
                 await event.client.send_text(json.dumps({'wake_result': {'won': False}}))
 
-        log.error(f"Terminating WakeSession with ID {self.id}. Winner: {winner}")
+        log.debug(f"Terminating WakeSession with ID {self.id}. Winner: {winner}")
         global wake_session
         wake_session = None
 
@@ -626,7 +626,7 @@ async def websocket_endpoint(
     try:
         while True:
             data = await websocket.receive_text()
-            log.info(str(data))
+            log.debug(str(data))
             msg = json.loads(data)
 
             # latency sensitive so handle first
@@ -658,8 +658,7 @@ async def websocket_endpoint(
                 if "mac_addr" in msg["hello"]:
                     mac_addr = hex_mac(msg["hello"]["mac_addr"])
                     connmgr.update_client(websocket, "mac_addr", mac_addr)
-            else:
-                await connmgr.broadcast(websocket, data)
+
     except WebSocketDisconnect:
         connmgr.disconnect(websocket)
     except ConnectionClosed:
