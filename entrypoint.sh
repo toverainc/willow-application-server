@@ -9,4 +9,4 @@ FORWARDED_ALLOW_IPS=${FORWARDED_ALLOW_IPS:-127.0.0.1}
 set +a
 
 uvicorn api:app --reload --host 0.0.0.0 --port 8502 --log-config uvicorn-log-config.json \
-    --log-level "$LOG_LEVEL" --loop asyncio --timeout-graceful-shutdown 5
+    --log-level "$LOG_LEVEL" --loop asyncio
