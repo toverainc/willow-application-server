@@ -27,6 +27,7 @@ from shared.was import (
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
+    STORAGE_USER_WAS,
     URL_WILLOW_RELEASES,
     URL_WILLOW_CONFIG,
     construct_url,
@@ -249,6 +250,8 @@ def get_multinet():
 def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
 
+def get_was_config():
+    return get_json_from_file(STORAGE_USER_WAS)
 
 def get_was_url():
     try:
@@ -337,6 +340,11 @@ async def post_config(request, apply=False):
             await connmgr.broadcast(websocket, msg)
         return "Success"
 
+async def post_was(request, apply=False):
+    data = await request.json()
+    data = json.dumps(data)
+    save_json_to_file(STORAGE_USER_WAS, data)
+    return "Success"
 
 async def post_nvs(request, apply=False):
     data = await request.json()
@@ -442,7 +450,7 @@ async def api_get_client():
 
 
 class GetConfig(BaseModel):
-    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet'] = Field (Query(..., description='Configuration type'))
+    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet', 'was'] = Field (Query(..., description='Configuration type'))
     default: Optional[bool] = False
 
 @app.get("/api/config")
@@ -471,7 +479,9 @@ async def api_get_config(config: GetConfig = Depends()):
     elif config.type == "multinet":
         config = get_multinet()
         return JSONResponse(content=config)
-
+    elif config.type == "was":
+        config = get_was_config()
+        return JSONResponse(content=config)
 
 class GetOta(BaseModel):
     version: str = Field (Query(..., description='OTA Version'))
@@ -532,16 +542,17 @@ async def api_get_release(release: GetRelease = Depends()):
         return JSONResponse(content=releases)
 
 class PostConfig(BaseModel):
-    type: Literal['config', 'nvs'] = Field (Query(..., description='Configuration type'))
+    type: Literal['config', 'nvs', 'was'] = Field (Query(..., description='Configuration type'))
     apply: bool = Field (Query(..., description='Apply configuration to device'))
 
 @app.post("/api/config")
-async def api_apply_config(request: Request, config: PostConfig = Depends()):
+async def api_post_config(request: Request, config: PostConfig = Depends()):
     if config.type == "config":
         await post_config(request, config.apply)
     elif config.type == "nvs":
         await post_nvs(request, config.apply)
-
+    elif config.type == "was":
+        await post_was(request, config.apply)
 
 class PostClient(BaseModel):
     action: Literal['restart', 'update', 'config'] = Field (Query(..., description='Client action'))

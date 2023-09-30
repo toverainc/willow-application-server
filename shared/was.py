@@ -15,7 +15,7 @@ STORAGE_USER_CLIENT_CONFIG = 'storage/user_client_config.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
 STORAGE_USER_MULTINET = 'storage/user_multinet.json'
 STORAGE_USER_NVS = 'storage/user_nvs.json'
-
+STORAGE_USER_WAS = 'storage/user_was.json'
 
 def construct_url(host, port, tls=False, ws=False):
     if tls:
