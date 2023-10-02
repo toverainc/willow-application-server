@@ -387,7 +387,7 @@ def api_redirect_admin():
 
 class GetAsset(BaseModel):
     asset: str = Field (Query(..., description='Asset'))
-    type: Literal['audio', 'other'] = Field (Query(..., description='Asset type'))
+    type: Literal['audio', 'image', 'other'] = Field (Query(..., description='Asset type'))
 
 @app.get("/api/asset")
 async def api_get_asset(asset: GetAsset = Depends()):
@@ -402,7 +402,8 @@ async def api_get_asset(asset: GetAsset = Depends()):
     # Use libmagic to determine MIME type to be really sure
     magic_mime_type = get_mime_type(asset_file)
 
-    if asset.type == "other":
+    # Return image and other types
+    if asset.type == "image" or asset.type == "other":
         return FileResponse(asset_file, media_type=magic_mime_type)
 
     # Only support audio formats supported by Willow
