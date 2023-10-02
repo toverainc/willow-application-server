@@ -28,8 +28,10 @@ from shared.was import (
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
     STORAGE_USER_WAS,
+    STORAGE_TZ,
     URL_WILLOW_RELEASES,
     URL_WILLOW_CONFIG,
+    URL_WILLOW_TZ,
     construct_url,
     get_release_url,
 )
@@ -253,6 +255,15 @@ def get_nvs():
 def get_was_config():
     return get_json_from_file(STORAGE_USER_WAS)
 
+def get_tz_config(refresh = False):
+    if refresh:
+        tz = get(URL_WILLOW_TZ).json()
+        with open(STORAGE_TZ, "w") as tz_file:
+            json.dump(tz, tz_file)
+        tz_file.close()
+
+    return get_json_from_file(STORAGE_TZ)
+
 def get_was_url():
     try:
         nvs = get_nvs()
@@ -378,6 +389,7 @@ def save_json_to_file(path, content):
 @app.on_event("startup")
 async def startup_event():
     migrate_user_files()
+    get_tz_config(refresh=True)
 
 
 @app.get("/", response_class=RedirectResponse)
@@ -451,12 +463,18 @@ async def api_get_client():
 
 
 class GetConfig(BaseModel):
-    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet', 'was'] = Field (Query(..., description='Configuration type'))
+    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet', 'was', 'tz'] = Field (Query(..., description='Configuration type'))
     default: Optional[bool] = False
 
 @app.get("/api/config")
 async def api_get_config(config: GetConfig = Depends()):
 
+    # TZ is special
+    if config.type == "tz":
+        config = get_tz_config(refresh=config.default)
+        return JSONResponse(content=config)
+
+    # Otherwise handle other config types
     if config.default:
         default_config = requests.get(f"{URL_WILLOW_CONFIG}?type={config.type}").json()
         if type(default_config) == dict:
