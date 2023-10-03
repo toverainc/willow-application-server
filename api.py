@@ -672,7 +672,7 @@ async def websocket_endpoint(
             elif "wake_end" in msg:
                 pass
 
-            if "cmd" in msg:
+            elif "cmd" in msg:
                 if msg["cmd"] == "get_config":
                     await websocket.send_text(build_msg(get_config_ws(), "config"))
 
