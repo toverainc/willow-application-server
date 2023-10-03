@@ -121,7 +121,8 @@ class ConnMgr:
                 log.error(f"failed to broadcast message: {e}")
 
     def disconnect(self, ws: WebSocket):
-        self.connected_clients.pop(ws)
+        if ws in self.connected_clients:
+            self.connected_clients.pop(ws)
 
     def get_client_by_hostname(self, hostname):
         for k, v in self.connected_clients.items():
