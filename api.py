@@ -50,7 +50,6 @@ app = FastAPI(title="Willow Application Server",
 
 log = logging.getLogger("WAS")
 wake_session = None
-websocket = WebSocket
 
 app.add_middleware(
     CORSMiddleware,
@@ -114,7 +113,7 @@ class ConnMgr:
         except WebSocketException as e:
             log.error(f"failed to accept websocket connection: {e}")
 
-    async def broadcast(self, ws: websocket, msg: str):
+    async def broadcast(self, ws: WebSocket, msg: str):
         for client in self.connected_clients:
             try:
                 await client.send_text(msg)
@@ -648,7 +647,7 @@ async def api_post_release(request: Request, release: PostRelease = Depends()):
 
 @app.websocket("/ws")
 async def websocket_endpoint(
-        websocket: websocket,
+        websocket: WebSocket,
         user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
     client = Client(user_agent)
 
