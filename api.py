@@ -113,7 +113,7 @@ class ConnMgr:
         except WebSocketException as e:
             log.error(f"failed to accept websocket connection: {e}")
 
-    async def broadcast(self, ws: WebSocket, msg: str):
+    async def broadcast(self, msg: str):
         for client in self.connected_clients:
             try:
                 await client.send_text(msg)
@@ -348,7 +348,7 @@ async def post_config(request, apply=False):
         msg = build_msg(data, "config")
         log.info(str(msg))
         if apply:
-            await connmgr.broadcast(websocket, msg)
+            await connmgr.broadcast(msg)
         return "Success"
 
 async def post_was(request, apply=False):
@@ -376,7 +376,7 @@ async def post_nvs(request, apply=False):
         msg = build_msg(data, "nvs")
         log.info(str(msg))
         if apply:
-            await connmgr.broadcast(websocket, msg)
+            await connmgr.broadcast(msg)
         return "Success"
 
 
