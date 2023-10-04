@@ -30,6 +30,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
+from command_endpoints.rest import RestEndpoint
+
 from shared.was import (
     DIR_ASSET,
     DIR_OTA,
@@ -401,10 +403,33 @@ def save_json_to_file(path, content):
     config_file.close()
 
 
+def init_command_endpoint(app):
+    app.command_endpoint = None
+    user_config = get_config()
+
+    if "was_mode" in user_config and user_config["was_mode"]:
+        log.info("WAS Endpoint mode enabled")
+
+        if user_config["command_endpoint"] == "REST":
+            app.command_endpoint = RestEndpoint(user_config["rest_url"])
+            app.command_endpoint.config.set_auth_type(user_config["rest_auth_type"])
+
+            if "rest_auth_header" in user_config:
+                app.command_endpoint.config.set_auth_header(user_config["rest_auth_header"])
+
+            if "rest_auth_pass" in user_config:
+                app.command_endpoint.config.set_auth_pass(user_config["rest_auth_pass"])
+
+            if "rest_auth_user" in user_config:
+                app.command_endpoint.config.set_auth_user(user_config["rest_auth_user"])
+
+
 @app.on_event("startup")
 async def startup_event():
     migrate_user_files()
     get_tz_config(refresh=True)
+
+    init_command_endpoint(app)
 
 
 @app.get("/", response_class=RedirectResponse)
@@ -583,6 +608,7 @@ class PostConfig(BaseModel):
 async def api_post_config(request: Request, config: PostConfig = Depends()):
     if config.type == "config":
         await post_config(request, config.apply)
+        init_command_endpoint(app)
     elif config.type == "nvs":
         await post_nvs(request, config.apply)
     elif config.type == "was":
@@ -688,6 +714,15 @@ async def websocket_endpoint(
                 pass
 
             elif "cmd" in msg:
+                if msg["cmd"] == "endpoint":
+                    if app.command_endpoint is not None:
+                        log.debug(f"sending {msg['data']} to endpoint")
+                        resp = app.command_endpoint.send(jsondata=msg["data"])
+                        if resp is not None:
+                            resp = app.command_endpoint.parse_response(resp)
+                            log.debug(f"got response {resp} from endpoint")
+                            asyncio.ensure_future(websocket.send_text(resp))
+
                 if msg["cmd"] == "get_config":
                     asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
 
