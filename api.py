@@ -30,6 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
+from command_endpoints.openhab import OpenhabEndpoint
 from command_endpoints.rest import RestEndpoint
 
 from shared.was import (
@@ -410,7 +411,10 @@ def init_command_endpoint(app):
     if "was_mode" in user_config and user_config["was_mode"]:
         log.info("WAS Endpoint mode enabled")
 
-        if user_config["command_endpoint"] == "REST":
+        if user_config["command_endpoint"] == "openHAB":
+            app.command_endpoint = OpenhabEndpoint(user_config["openhab_url"], user_config["openhab_token"])
+
+        elif user_config["command_endpoint"] == "REST":
             app.command_endpoint = RestEndpoint(user_config["rest_url"])
             app.command_endpoint.config.set_auth_type(user_config["rest_auth_type"])
 
