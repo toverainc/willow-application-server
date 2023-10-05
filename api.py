@@ -31,6 +31,7 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
 from command_endpoints.ha_rest import HomeAssistantRestEndpoint
+from command_endpoints.ha_ws import HomeAssistantWebSocketEndpoint, HomeAssistantWebSocketEndpointNotSupportedException
 from command_endpoints.openhab import OpenhabEndpoint
 from command_endpoints.rest import RestEndpoint
 
@@ -406,7 +407,12 @@ def save_json_to_file(path, content):
 
 
 def init_command_endpoint(app):
-    app.command_endpoint = None
+    # call command_endpoint.stop() to avoid leaking asyncio task
+    try:
+        app.command_endpoint.stop()
+    except:
+        pass
+
     user_config = get_config()
 
     if "was_mode" in user_config and user_config["was_mode"]:
@@ -414,10 +420,15 @@ def init_command_endpoint(app):
 
         if user_config["command_endpoint"] == "Home Assistant":
 
-            ha_url_scheme = "https://" if user_config["hass_tls"] else "http://"
-            ha_url = f"{ha_url_scheme}{user_config["hass_host"]}:{user_config["hass_port"]}"
+            host = user_config["hass_host"]
+            port = user_config["hass_port"]
+            tls = user_config["hass_tls"]
+            token = user_config["hass_token"]
 
-            app.command_endpoint = HomeAssistantRestEndpoint(ha_url, user_config["hass_token"])
+            try:
+                app.command_endpoint = HomeAssistantWebSocketEndpoint(app, host, port, tls, token)
+            except HomeAssistantWebSocketEndpointNotSupportedException:
+                app.command_endpoint = HomeAssistantRestEndpoint(host, port, tls, token)
 
         elif user_config["command_endpoint"] == "openHAB":
             app.command_endpoint = OpenhabEndpoint(user_config["openhab_url"], user_config["openhab_token"])
@@ -742,12 +753,14 @@ async def websocket_endpoint(
             elif "cmd" in msg:
                 if msg["cmd"] == "endpoint":
                     if app.command_endpoint is not None:
-                        log.debug(f"sending {msg['data']} to endpoint")
-                        resp = app.command_endpoint.send(jsondata=msg["data"])
+                        log.debug(f"sending {msg['data']} to {app.command_endpoint.name}")
+                        resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
                         if resp is not None:
                             resp = app.command_endpoint.parse_response(resp)
                             log.debug(f"got response {resp} from endpoint")
-                            asyncio.ensure_future(websocket.send_text(resp))
+                            # HomeAssistantWebSocketEndpoint sends message via callback
+                            if resp is not None:
+                                asyncio.ensure_future(websocket.send_text(resp))
 
                 if msg["cmd"] == "get_config":
                     asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
