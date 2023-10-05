@@ -85,6 +85,7 @@ class RestEndpoint(CommandEndpoint):
             else:
                 raise CommandEndpointConfigException("invalid REST auth type")
 
+            self.log.debug(f"sending {data} or {jsondata} to {self.url}")
             return request("POST", self.url, auth=basic, data=data, headers=headers, json=jsondata)
 
         except Exception as e:

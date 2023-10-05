@@ -1,5 +1,6 @@
 import asyncio
 import json
+import requests
 import time
 import websockets
 from . import (
@@ -10,21 +11,51 @@ from . import (
 )
 
 
+class HomeAssistantWebSocketEndpointNotSupportedException(CommandEndpointRuntimeException):
+    pass
+
+
 class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     name = "WAS Home Assistant WebSocket Endpoint"
 
     connmap = {}
 
-    def __init__(self, app, url, token):
+    def __init__(self, app, host, port, tls, token):
         self.app = app
+        self.host = host
+        self.port = port
         self.token = token
-        self.url = url
+        self.tls = tls
+        self.url = self.construct_url(ws=True)
+
         self.haws = None
+
+        if not self.is_supported():
+            raise HomeAssistantWebSocketEndpointNotSupportedException
 
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.connect())
-        # TODO reconnect when changing endpoint settings
-        # app.haws_task.cancel()
+
+    def is_supported(self):
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        headers['Authorization'] = f"Bearer {self.token}"
+        ha_components_url = f"{self.construct_url(False)}/api/components"
+        response = requests.get(ha_components_url, headers=headers)
+
+        if "assist_pipeline" in response.json():
+            return True
+
+        return False
+
+    def construct_url(self, ws):
+        ha_url_scheme = ""
+        if ws:
+            ha_url_scheme = "wss://" if self.tls else "ws://"
+        else:
+            ha_url_scheme = "https://" if self.tls else "http://"
+
+        return f"{ha_url_scheme}{self.host}:{self.port}"
 
     async def connect(self):
         while True:
