@@ -612,6 +612,20 @@ async def api_get_release(release: GetRelease = Depends()):
 
         return JSONResponse(content=releases)
 
+class GetDebug(BaseModel):
+    type: Literal['asyncio_tasks'] = Field (Query(..., description='Debug type'))
+
+@app.get("/api/debug")
+async def api_get_debug(debug: GetDebug = Depends()):
+    res = []
+
+    if debug.type == "asyncio_tasks":
+        tasks = asyncio.all_tasks()
+        for task in tasks:
+            res.append(f"{task.get_name()}: {task.get_coro()}")
+
+    return JSONResponse(res)
+
 class PostConfig(BaseModel):
     type: Literal['config', 'nvs', 'was'] = Field (Query(..., description='Configuration type'))
     apply: bool = Field (Query(..., description='Apply configuration to device'))
