@@ -2,7 +2,17 @@ import asyncio
 from hashlib import sha256
 import json
 import os
-from fastapi import FastAPI, Depends, Header, HTTPException, WebSocket, WebSocketDisconnect, WebSocketException, Query, Request
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Header,
+    Query,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
