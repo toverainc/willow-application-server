@@ -30,6 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
+from command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from command_endpoints.openhab import OpenhabEndpoint
 from command_endpoints.rest import RestEndpoint
 
@@ -411,7 +412,14 @@ def init_command_endpoint(app):
     if "was_mode" in user_config and user_config["was_mode"]:
         log.info("WAS Endpoint mode enabled")
 
-        if user_config["command_endpoint"] == "openHAB":
+        if user_config["command_endpoint"] == "Home Assistant":
+
+            ha_url_scheme = "https://" if user_config["hass_tls"] else "http://"
+            ha_url = f"{ha_url_scheme}{user_config["hass_host"]}:{user_config["hass_port"]}"
+
+            app.command_endpoint = HomeAssistantRestEndpoint(ha_url, user_config["hass_token"])
+
+        elif user_config["command_endpoint"] == "openHAB":
             app.command_endpoint = OpenhabEndpoint(user_config["openhab_url"], user_config["openhab_token"])
 
         elif user_config["command_endpoint"] == "REST":
