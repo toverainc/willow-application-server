@@ -59,6 +59,11 @@ app = FastAPI(title="Willow Application Server",
               redoc_url="/redoc")
 
 log = logging.getLogger("WAS")
+try:
+    log.setLevel(os.environ.get("WAS_LOG_LEVEL"))
+except:
+    pass
+
 wake_session = None
 
 app.add_middleware(
