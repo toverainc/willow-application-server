@@ -684,7 +684,7 @@ async def websocket_endpoint(
 
             elif "cmd" in msg:
                 if msg["cmd"] == "get_config":
-                    await websocket.send_text(build_msg(get_config_ws(), "config"))
+                    asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
 
             elif "goodbye" in msg:
                 connmgr.disconnect(websocket)
