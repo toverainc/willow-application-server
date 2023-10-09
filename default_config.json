@@ -11,7 +11,7 @@
   "hass_token": "your_ha_token",
   "lcd_brightness": 700,
   "mic_gain": 14,
-  "multinet": false,
+  "multiwake": false,
   "ntp_config": "Host",
   "ntp_host": "pool.ntp.org",
   "openhab_token": "your_openhab_token",
