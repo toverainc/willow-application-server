@@ -2,7 +2,7 @@
   "aec": true,
   "audio_codec": "PCM",
   "audio_response_type": "None",
-  "bss": true,
+  "bss": false,
   "command_endpoint": "Home Assistant",
   "display_timeout": 10,
   "hass_host": "homeassistant.local",
