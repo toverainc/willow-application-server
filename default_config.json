@@ -9,7 +9,7 @@
   "hass_port": 8123,
   "hass_tls": false,
   "hass_token": "your_ha_token",
-  "lcd_brightness": 700,
+  "lcd_brightness": 500,
   "mic_gain": 14,
   "multiwake": false,
   "ntp_config": "Host",
@@ -27,10 +27,10 @@
   "stream_timeout": 5,
   "timezone": "UTC+5",
   "timezone_continent_city": "America/Menominee",
-  "vad_mode": 3,
+  "vad_mode": 2,
   "vad_timeout": 300,
-  "wake_mode": "2CH_90",
-  "wake_word": "hiesp",
+  "wake_mode": "2CH_95",
+  "wake_word": "alexa",
   "wis_tts_url": "https://infer.tovera.io/api/tts",
   "wis_url": "https://infer.tovera.io/api/willow"
 }
