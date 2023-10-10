@@ -237,11 +237,11 @@ def get_devices():
 
     return devices
 
-async def restart_device(data):
+async def device_command(data, command):
     if 'hostname' in data:
         hostname = data["hostname"]
 
-    msg = json.dumps({'cmd': 'restart'})
+    msg = json.dumps({'cmd': command})
     try:
         ws = connmgr.get_client_by_hostname(hostname)
         await ws.send_text(msg)
@@ -652,16 +652,14 @@ async def api_post_config(request: Request, config: PostConfig = Depends()):
         await post_was(request, config.apply)
 
 class PostClient(BaseModel):
-    action: Literal['restart', 'update', 'config'] = Field (Query(..., description='Client action'))
+    action: Literal['restart', 'update', 'config', 'identify'] = Field (Query(..., description='Client action'))
 
 
 @app.post("/api/client")
 async def api_post_client(request: Request, device: PostClient = Depends()):
     data = await request.json()
 
-    if device.action == "restart":
-        return await restart_device(data)
-    elif device.action == "update":
+    if device.action == "update":
         msg = json.dumps({'cmd': 'ota_start', 'ota_url': data["ota_url"]})
         try:
             ws = connmgr.get_client_by_hostname(data["hostname"])
@@ -686,6 +684,9 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
         with open(STORAGE_USER_CLIENT_CONFIG, "w") as devices_file:
             json.dump(devices, devices_file)
         devices_file.close()
+    else:
+        # Catch all assuming anything else is a device command
+        return await device_command(data, device.action)
 
 
 class PostRelease(BaseModel):
