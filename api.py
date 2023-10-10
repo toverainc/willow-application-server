@@ -762,7 +762,7 @@ async def websocket_endpoint(
                             if resp is not None:
                                 asyncio.ensure_future(websocket.send_text(resp))
 
-                if msg["cmd"] == "get_config":
+                elif msg["cmd"] == "get_config":
                     asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
 
             elif "goodbye" in msg:
