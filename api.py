@@ -109,7 +109,7 @@ class Client:
     def __init__(self, ua):
         self.hostname = "unknown"
         self.platform = "unknown"
-        self.mac_addr = []
+        self.mac_addr = "unknown"
         self.ua = ua
 
     def set_hostname(self, hostname):
