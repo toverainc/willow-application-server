@@ -22,6 +22,7 @@
   "rest_auth_type": "None",
   "rest_auth_user": "your_username",
   "rest_url": "http://your_rest_url",
+  "show_prereleases": false,
   "speaker_volume": 60,
   "speech_rec_mode": "WIS",
   "stream_timeout": 5,
