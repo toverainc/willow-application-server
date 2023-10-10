@@ -30,6 +30,7 @@
   "timezone_continent_city": "America/Menominee",
   "vad_mode": 2,
   "vad_timeout": 300,
+  "wake_confirmation": false,
   "wake_mode": "2CH_95",
   "wake_word": "alexa",
   "wis_tts_url": "https://infer.tovera.io/api/tts",
