@@ -18,6 +18,20 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
+      - name: fetch UI tarball
+        uses: joutvhu/get-release@v1.0.2
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          repo: willow-application-server-ui
+
+      - name: extract UI tarball
+        if: ${{ github.ref_type == 'tag' }}
+        run: tar --directory=static/admin/ --strip-components=1 -xzf willow-application-server-ui.tar.gz
+
+      - name: delete UI tarball
+        if: ${{ github.ref_type == 'tag' }}
+        run: rm willow-application-server-ui.tar.gz
+
       - name: get gen-tz.py
         run: curl --output /tmp/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/4b9caa3066434b015a99cadb74050fd46b7cc12b/gen-tz.py
 
