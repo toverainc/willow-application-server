@@ -5,11 +5,12 @@ services:
     restart: unless-stopped
     image: ${IMAGE}:${TAG}
     environment:
+      - LOG_LEVEL
       - WAS_IP
+      - WAS_LOG_LEVEL
     #build:
     #  dockerfile: Dockerfile
     ports:
-      - ${LISTEN_IP}:${UI_LISTEN_PORT}:8502
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
