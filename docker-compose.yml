@@ -1,5 +1,3 @@
-volumes:
-  was-storage:
 services:
   was:
     restart: unless-stopped
