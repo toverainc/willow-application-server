@@ -16,10 +16,10 @@ def save_json_to_file(path, content):
     config_file.close()
 
 if os.path.isfile(STORAGE_USER_CLIENT_CONFIG):
-    print('Existing user_client_config.json found - exiting')
     sys.exit()
 
 if os.path.isfile(STORAGE_DEVICES_CONFIG):
+    print('Migrating legacy WAS client configuration...')
     devices_file = open(STORAGE_DEVICES_CONFIG, "r")
     devices = json.load(devices_file)
     devices_file.close()
