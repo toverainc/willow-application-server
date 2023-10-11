@@ -19,9 +19,6 @@ source .env
 # Which docker image to run
 IMAGE=${IMAGE:-willow-application-server}
 
-# HTTPS Listen port
-LISTEN_PORT_HTTPS=${LISTEN_PORT_HTTPS:-19000}
-
 # UI Listen port
 UI_LISTEN_PORT=${UI_LISTEN_PORT:-8501}
 
@@ -29,7 +26,7 @@ UI_LISTEN_PORT=${UI_LISTEN_PORT:-8501}
 API_LISTEN_PORT=${API_LISTEN_PORT:-8502}
 
 # Log level - acceptable values are debug, info, warning, error, critical. Suggest info or debug.
-LOG_LEVEL=${LOG_LEVEL:-debug}
+LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Listen IP
 LISTEN_IP=${LISTEN_IP:-0.0.0.0}
