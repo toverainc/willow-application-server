@@ -92,10 +92,12 @@ def migrate_user_files():
             if not os.path.isfile(dest):
                 move(user_file, dest)
 
+
 def hex_mac(mac):
     if type(mac) == list:
         mac = '%02x:%02x:%02x:%02x:%02x:%02x' % (mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
     return mac
+
 
 def is_safe_path(basedir, path, follow_symlinks=True):
     # resolves symbolic links
@@ -104,6 +106,7 @@ def is_safe_path(basedir, path, follow_symlinks=True):
     else:
         matchpath = os.path.abspath(path)
     return basedir == os.path.commonpath((basedir, matchpath))
+
 
 class Client:
     def __init__(self, ua):
@@ -131,14 +134,14 @@ class ConnMgr:
             await ws.accept()
             self.connected_clients[ws] = client
         except WebSocketException as e:
-            log.error(f"failed to accept websocket connection: {e}")
+            log.error(f"Failed to accept websocket connection: {e}")
 
     async def broadcast(self, msg: str):
         for client in self.connected_clients:
             try:
                 await client.send_text(msg)
             except WebSocketException as e:
-                log.error(f"failed to broadcast message: {e}")
+                log.error(f"Failed to broadcast message: {e}")
 
     def disconnect(self, ws: WebSocket):
         if ws in self.connected_clients:
@@ -157,10 +160,12 @@ class ConnMgr:
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
 
+
 class WakeEvent:
     def __init__(self, client, volume):
         self.client = client
         self.volume = volume
+
 
 class WakeSession:
     def __init__(self):
@@ -194,7 +199,6 @@ class WakeSession:
         wake_session = None
 
 
-
 # Make sure we always have DIR_OTA
 Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 
@@ -208,7 +212,7 @@ def build_msg(config, container):
         msg = json.dumps({container: json.loads(config)}, sort_keys=True)
         return msg
     except Exception as e:
-        log.error(f"failed to build config message: {e}")
+        log.error(f"Failed to build config message: {e}")
 
 
 def get_config_ws():
@@ -217,7 +221,7 @@ def get_config_ws():
         with open(STORAGE_USER_CONFIG, "r") as config_file:
             config = config_file.read()
     except Exception as e:
-        log.error(f"failed to get config: {e}")
+        log.error(f"Failed to get config: {e}")
     finally:
         config_file.close()
         return config
@@ -237,6 +241,7 @@ def get_devices():
 
     return devices
 
+
 async def device_command(data, command):
     if 'hostname' in data:
         hostname = data["hostname"]
@@ -247,8 +252,9 @@ async def device_command(data, command):
         await ws.send_text(msg)
         return "Success"
     except Exception as e:
-        log.error(f"failed to send restart command to {data['hostname']} ({e})")
+        log.error(f"Failed to send restart command to {data['hostname']} ({e})")
         return "Error"
+
 
 def get_json_from_file(path):
     try:
@@ -272,8 +278,10 @@ def get_multinet():
 def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
 
+
 def get_was_config():
     return get_json_from_file(STORAGE_USER_WAS)
+
 
 def get_tz_config(refresh = False):
     if refresh:
@@ -283,6 +291,7 @@ def get_tz_config(refresh = False):
         tz_file.close()
 
     return get_json_from_file(STORAGE_TZ)
+
 
 def get_was_url():
     try:
@@ -349,6 +358,7 @@ def get_releases_willow():
         releases = releases_local + releases
     return releases
 
+
 async def post_config(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
@@ -360,22 +370,24 @@ async def post_config(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"failed to apply config to {data['hostname']} ({e})")
+            log.error(f"Failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
         data = json.dumps(data)
         save_json_to_file(STORAGE_USER_CONFIG, data)
         msg = build_msg(data, "config")
-        log.info(str(msg))
+        log.debug(str(msg))
         if apply:
             await connmgr.broadcast(msg)
         return "Success"
+
 
 async def post_was(request, apply=False):
     data = await request.json()
     data = json.dumps(data)
     save_json_to_file(STORAGE_USER_WAS, data)
     return "Success"
+
 
 async def post_nvs(request, apply=False):
     data = await request.json()
@@ -388,13 +400,13 @@ async def post_nvs(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"failed to apply config to {data['hostname']} ({e})")
+            log.error(f"Failed to apply config to {data['hostname']} ({e})")
             return "Error"
     else:
         data = json.dumps(data)
         save_json_to_file(STORAGE_USER_NVS, data)
         msg = build_msg(data, "nvs")
-        log.info(str(msg))
+        log.debug(str(msg))
         if apply:
             await connmgr.broadcast(msg)
         return "Success"
@@ -457,6 +469,7 @@ async def startup_event():
 
 @app.get("/", response_class=RedirectResponse)
 def api_redirect_admin():
+    log.debug('API GET ROOT: Request')
     return "/admin"
 
 
@@ -464,8 +477,10 @@ class GetAsset(BaseModel):
     asset: str = Field (Query(..., description='Asset'))
     type: Literal['audio', 'image', 'other'] = Field (Query(..., description='Asset type'))
 
+
 @app.get("/api/asset")
 async def api_get_asset(asset: GetAsset = Depends()):
+    log.debug('API GET ASSET: Request')
     asset_file = f"{DIR_ASSET}/{asset.type}/{asset.asset}"
     if not is_safe_path(DIR_ASSET, asset_file):
         return
@@ -490,6 +505,7 @@ async def api_get_asset(asset: GetAsset = Depends()):
 
 @app.get("/api/client")
 async def api_get_client():
+    log.debug('API GET CLIENT: Request')
     devices = get_devices()
     clients = []
     macs = []
@@ -529,9 +545,10 @@ class GetConfig(BaseModel):
     type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet', 'was', 'tz'] = Field (Query(..., description='Configuration type'))
     default: Optional[bool] = False
 
+
 @app.get("/api/config")
 async def api_get_config(config: GetConfig = Depends()):
-
+    log.debug('API GET CONFIG: Request')
     # TZ is special
     if config.type == "tz":
         config = get_tz_config(refresh=config.default)
@@ -572,6 +589,7 @@ class GetOta(BaseModel):
 
 @app.get("/api/ota")
 async def api_get_ota(ota: GetOta = Depends()):
+    log.debug('API GET OTA: Request')
     ota_file = f"{DIR_OTA}/{ota.version}/{ota.platform}.bin"
     if not is_safe_path(DIR_OTA, ota_file):
         return
@@ -592,12 +610,14 @@ async def api_get_ota(ota: GetOta = Depends()):
 
     return FileResponse(ota_file)
 
+
 class GetRelease(BaseModel):
     type: Literal['was', 'willow'] = Field (Query(..., description='Release type'))
 
+
 @app.get("/api/release")
 async def api_get_release(release: GetRelease = Depends()):
-    log.info('Got release request')
+    log.debug('API GET RELEASE: Request')
     releases = get_releases_willow()
     if release.type == "willow":
         return releases
@@ -623,26 +643,31 @@ async def api_get_release(release: GetRelease = Depends()):
 
         return JSONResponse(content=releases)
 
-class GetDebug(BaseModel):
-    type: Literal['asyncio_tasks'] = Field (Query(..., description='Debug type'))
+class GetStatus(BaseModel):
+    type: Literal['asyncio_tasks'] = Field (Query(..., description='Status type'))
 
-@app.get("/api/debug")
-async def api_get_debug(debug: GetDebug = Depends()):
+
+@app.get("/api/status")
+async def api_get_status(status: GetStatus = Depends()):
+    log.debug('API GET STATUS: Request')
     res = []
 
-    if debug.type == "asyncio_tasks":
+    if status.type == "asyncio_tasks":
         tasks = asyncio.all_tasks()
         for task in tasks:
             res.append(f"{task.get_name()}: {task.get_coro()}")
 
     return JSONResponse(res)
 
+
 class PostConfig(BaseModel):
     type: Literal['config', 'nvs', 'was'] = Field (Query(..., description='Configuration type'))
     apply: bool = Field (Query(..., description='Apply configuration to device'))
 
+
 @app.post("/api/config")
 async def api_post_config(request: Request, config: PostConfig = Depends()):
+    log.debug('API POST CONFIG: Request')
     if config.type == "config":
         await post_config(request, config.apply)
         init_command_endpoint(app)
@@ -657,6 +682,7 @@ class PostClient(BaseModel):
 
 @app.post("/api/client")
 async def api_post_client(request: Request, device: PostClient = Depends()):
+    log.debug('API POST CLIENT: Request')
     data = await request.json()
 
     if device.action == "update":
@@ -665,7 +691,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
             ws = connmgr.get_client_by_hostname(data["hostname"])
             await ws.send_text(msg)
         except Exception as e:
-            log.error(f"failed to trigger OTA ({e})")
+            log.error(f"Failed to trigger OTA ({e})")
         finally:
             return
     elif device.action == "config":
@@ -695,6 +721,7 @@ class PostRelease(BaseModel):
 
 @app.post("/api/release")
 async def api_post_release(request: Request, release: PostRelease = Depends()):
+    log.debug('API POST RELEASE: Request')
     if release.action == "cache":
         data = await request.json()
 
@@ -754,11 +781,11 @@ async def websocket_endpoint(
             elif "cmd" in msg:
                 if msg["cmd"] == "endpoint":
                     if app.command_endpoint is not None:
-                        log.debug(f"sending {msg['data']} to {app.command_endpoint.name}")
+                        log.debug(f"Sending {msg['data']} to {app.command_endpoint.name}")
                         resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
                         if resp is not None:
                             resp = app.command_endpoint.parse_response(resp)
-                            log.debug(f"got response {resp} from endpoint")
+                            log.debug(f"Got response {resp} from endpoint")
                             # HomeAssistantWebSocketEndpoint sends message via callback
                             if resp is not None:
                                 asyncio.ensure_future(websocket.send_text(resp))
