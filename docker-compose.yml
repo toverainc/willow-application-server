@@ -9,7 +9,7 @@ services:
     #build:
     #  dockerfile: Dockerfile
     ports:
-      - ${LISTEN_IP}:${UI_LISTEN_PORT}:8501
+      - ${LISTEN_IP}:${UI_LISTEN_PORT}:8502
       - ${LISTEN_IP}:${API_LISTEN_PORT}:8502
     volumes:
       - ./:/app
