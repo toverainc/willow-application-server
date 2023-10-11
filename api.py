@@ -65,7 +65,7 @@ app = FastAPI(title="Willow Application Server",
 
 log = logging.getLogger("WAS")
 try:
-    log.setLevel(os.environ.get("WAS_LOG_LEVEL"))
+    log.setLevel(os.environ.get("WAS_LOG_LEVEL").upper())
 except:
     pass
 
