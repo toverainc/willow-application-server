@@ -32,6 +32,7 @@ from typing import Literal, Optional
 
 from command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from command_endpoints.ha_ws import HomeAssistantWebSocketEndpoint, HomeAssistantWebSocketEndpointNotSupportedException
+from command_endpoints.mqtt import MqttConfig, MqttEndpoint
 from command_endpoints.openhab import OpenhabEndpoint
 from command_endpoints.rest import RestEndpoint
 
@@ -441,6 +442,22 @@ def init_command_endpoint(app):
                 app.command_endpoint = HomeAssistantWebSocketEndpoint(app, host, port, tls, token)
             except HomeAssistantWebSocketEndpointNotSupportedException:
                 app.command_endpoint = HomeAssistantRestEndpoint(host, port, tls, token)
+
+        elif user_config["command_endpoint"] == "MQTT":
+            mqtt_config = MqttConfig()
+            mqtt_config.set_auth_type(user_config["mqtt_auth_type"])
+            mqtt_config.set_hostname(user_config["mqtt_host"])
+            mqtt_config.set_port(user_config["mqtt_port"])
+            mqtt_config.set_tls(user_config["mqtt_tls"])
+            mqtt_config.set_topic(user_config["mqtt_topic"])
+
+            if 'mqtt_password' in user_config:
+                mqtt_config.set_password(user_config['mqtt_password'])
+
+            if 'mqtt_username' in user_config:
+                mqtt_config.set_username(user_config['mqtt_username'])
+
+            app.command_endpoint = MqttEndpoint(mqtt_config)
 
         elif user_config["command_endpoint"] == "openHAB":
             app.command_endpoint = OpenhabEndpoint(user_config["openhab_url"], user_config["openhab_token"])
