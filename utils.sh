@@ -36,6 +36,15 @@ TAG=${TAG:-latest}
 # Torture delay
 TORTURE_DELAY=${TORTURE_DELAY:-300}
 
+# Web ui branch
+WEB_UI_BRANCH="main"
+
+# Local working directory for web ui
+WEB_UI_DIR="willow-application-server-ui"
+
+# Web ui URL
+WEB_UI_URL="https://github.com/toverainc/willow-application-server-ui.git"
+
 # Reachable WAS IP for the "default" interface
 WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 
@@ -68,6 +77,23 @@ build-docker() {
     docker build -t "$IMAGE":"$TAG" .
 }
 
+build-web-ui() {
+    mkdir -p "$WAS_DIR"/work
+    cd "$WAS_DIR"/work
+    if [ -d "$WEB_UI_DIR/node_modules" ]; then
+        echo "Existing web ui working dir found, we need sudo to remove it because of docker"
+        sudo rm -rf willow-application-server-ui
+    fi
+    git clone "$WEB_UI_URL"
+    cd willow-application-server-ui
+    git checkout "$WEB_UI_BRANCH"
+    ./utils.sh build-docker
+    ./utils.sh install
+    # WAS_DIR is already set
+    export WAS_DIR
+    ./utils.sh build
+}
+
 gen-tz() {
     curl --output misc/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/gen-tz.py
     python3 misc/gen-tz.py --json > tz.json
@@ -83,6 +109,10 @@ case $1 in
 build-docker|build)
     gen-tz
     build-docker
+;;
+
+build-web-ui)
+    build-web-ui
 ;;
 
 freeze-requirements)
