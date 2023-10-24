@@ -164,3 +164,6 @@ gen-tz.py
 static/
 tz.json
 storage
+
+# Web UI working directory and others
+work
