@@ -370,7 +370,7 @@ async def post_config(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"Failed to apply config to {data['hostname']} ({e})")
+            log.error(f"Failed to apply config to {hostname} ({e})")
             return "Error"
     else:
         data = json.dumps(data)
@@ -400,7 +400,7 @@ async def post_nvs(request, apply=False):
             await ws.send_text(msg)
             return "Success"
         except Exception as e:
-            log.error(f"Failed to apply config to {data['hostname']} ({e})")
+            log.error(f"Failed to apply config to {hostname} ({e})")
             return "Error"
     else:
         data = json.dumps(data)
