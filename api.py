@@ -464,7 +464,11 @@ async def startup_event():
     migrate_user_files()
     get_tz_config(refresh=True)
 
-    init_command_endpoint(app)
+    try:
+        init_command_endpoint(app)
+    except Exception as e:
+        app.command_endpoint = None
+        log.error(f"failed to initialize command endpoint ({e})")
 
 
 @app.get("/", response_class=RedirectResponse)
