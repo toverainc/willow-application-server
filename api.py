@@ -698,7 +698,7 @@ async def api_post_config(request: Request, config: PostConfig = Depends()):
         await post_was(request, config.apply)
 
 class PostClient(BaseModel):
-    action: Literal['restart', 'update', 'config', 'identify'] = Field (Query(..., description='Client action'))
+    action: Literal['restart', 'update', 'config', 'identify', 'notify'] = Field (Query(..., description='Client action'))
 
 
 @app.post("/api/client")
@@ -731,6 +731,18 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
         with open(STORAGE_USER_CLIENT_CONFIG, "w") as devices_file:
             json.dump(devices, devices_file)
         devices_file.close()
+    elif device.action == 'notify':
+        try:
+            msg = json.dumps(data)
+            if 'hostname' in data:
+                ws = connmgr.get_client_by_hostname(data['hostname'])
+                await ws.send_text(msg)
+            else:
+                await connmgr.broadcast(msg)
+            return "Success"
+        except Exception as e:
+            log.error(f"Failed to send notify command ({e})")
+            return "Error"
     else:
         # Catch all assuming anything else is a device command
         return await device_command(data, device.action)
