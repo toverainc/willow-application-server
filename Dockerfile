@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install gcc temporarily until wheels for httptools on Python 3.12 are available
-RUN apt-get update && apt-get install -y gcc libmagic1 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y gcc libc6-dev libmagic1 && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
 
