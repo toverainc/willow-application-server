@@ -155,7 +155,9 @@ class ConnMgr:
 
     async def notify(self, data):
         try:
-            msg = json.dumps(data)
+            msg = NotifyMsg.model_validate_json(json.dumps(data))
+            msg = msg.model_dump_json(exclude={'hostname'}, exclude_none=True)
+            log.info(msg)
             if 'hostname' in data:
                 ws = self.get_client_by_hostname(data['hostname'])
                 await ws.send_text(msg)
@@ -173,6 +175,22 @@ class ConnMgr:
             self.connected_clients[ws].set_platform(value)
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
+
+
+class NotifyData(BaseModel):
+    audio_url: Optional[str] = None
+    backlight: bool = False
+    backlight_max: bool = False
+    repeat: int = 1
+    strobe_period_ms: Optional[int] = 0
+    text: Optional[str] = None
+    volume: Optional[int] = Optional[Annotated[int, Field(ge=0, le=100)]]
+
+
+class NotifyMsg(BaseModel):
+    cmd: str = "notify"
+    data: NotifyData
+    hostname: Optional[str] = None
 
 
 class WakeEvent:
