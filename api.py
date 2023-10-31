@@ -153,6 +153,19 @@ class ConnMgr:
             if v.hostname == hostname:
                 return k
 
+    async def notify(self, data):
+        try:
+            msg = json.dumps(data)
+            if 'hostname' in data:
+                ws = self.get_client_by_hostname(data['hostname'])
+                await ws.send_text(msg)
+            else:
+                await self.broadcast(msg)
+            return "Success"
+        except Exception as e:
+            log.error(f"Failed to send notify command ({e})")
+            return "Error"
+
     def update_client(self, ws, key, value):
         if key == "hostname":
             self.connected_clients[ws].set_hostname(value)
@@ -732,17 +745,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
             json.dump(devices, devices_file)
         devices_file.close()
     elif device.action == 'notify':
-        try:
-            msg = json.dumps(data)
-            if 'hostname' in data:
-                ws = connmgr.get_client_by_hostname(data['hostname'])
-                await ws.send_text(msg)
-            else:
-                await connmgr.broadcast(msg)
-            return "Success"
-        except Exception as e:
-            log.error(f"Failed to send notify command ({e})")
-            return "Error"
+        return await connmgr.notify(data)
     else:
         # Catch all assuming anything else is a device command
         return await device_command(data, device.action)
