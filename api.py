@@ -181,6 +181,7 @@ class NotifyData(BaseModel):
     audio_url: Optional[str] = None
     backlight: bool = False
     backlight_max: bool = False
+    id: int = int(time.time() * 1000)
     repeat: int = 1
     strobe_period_ms: Optional[int] = 0
     text: Optional[str] = None
