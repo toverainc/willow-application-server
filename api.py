@@ -28,7 +28,7 @@ from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from command_endpoints.ha_ws import HomeAssistantWebSocketEndpoint, HomeAssistantWebSocketEndpointNotSupportedException
@@ -115,6 +115,7 @@ class Client:
         self.platform = "unknown"
         self.mac_addr = "unknown"
         self.ua = ua
+        self.notification_active = 0
 
     def set_hostname(self, hostname):
         self.hostname = hostname
@@ -124,6 +125,12 @@ class Client:
 
     def set_mac_addr(self, mac_addr):
         self.mac_addr = mac_addr
+
+    def is_notification_active(self):
+        return self.notification_active != 0
+
+    def set_notification_active(self, id):
+        self.notification_active = id
 
 
 class ConnMgr:
@@ -153,20 +160,30 @@ class ConnMgr:
             if v.hostname == hostname:
                 return k
 
-    async def notify(self, data):
-        try:
-            msg = NotifyMsg.model_validate_json(json.dumps(data))
-            msg = msg.model_dump_json(exclude={'hostname'}, exclude_none=True)
-            log.info(msg)
-            if 'hostname' in data:
-                ws = self.get_client_by_hostname(data['hostname'])
-                await ws.send_text(msg)
-            else:
-                await self.broadcast(msg)
-            return "Success"
-        except Exception as e:
-            log.error(f"Failed to send notify command ({e})")
-            return "Error"
+    def get_client_by_ws(self, ws):
+        return self.connected_clients[ws]
+
+    def get_mac_by_hostname(self, hostname):
+        for k, v in self.connected_clients.items():
+            if v.hostname == hostname:
+                return v.mac_addr
+
+        return None
+
+    def get_ws_by_mac(self, mac):
+        for k, v in self.connected_clients.items():
+            # log.debug(f"get_ws_by_mac: {k} {v.mac_addr}")
+            if v.mac_addr == mac:
+                return k
+
+        log.debug("get_ws_by_mac: returning None")
+        return None
+
+    def is_notification_active(self, ws):
+        return self.connected_clients[ws].is_notification_active()
+
+    def set_notification_active(self, ws, id):
+        self.connected_clients[ws].set_notification_active(id)
 
     def update_client(self, ws, key, value):
         if key == "hostname":
@@ -192,6 +209,83 @@ class NotifyMsg(BaseModel):
     cmd: str = "notify"
     data: NotifyData
     hostname: Optional[str] = None
+
+
+class NotifyQueue():
+    notifications: Dict[str, List[NotifyData]]
+
+    def __init__(self):
+        self.notifications = {}
+
+        loop = asyncio.get_event_loop()
+        self.task = loop.create_task(self.dequeue())
+
+
+    def add(self, msg):
+        msg = NotifyMsg.model_validate_json(json.dumps(msg))
+
+        log.debug(msg)
+
+        if msg.hostname is not None:
+            mac_addr = connmgr.get_mac_by_hostname(msg.hostname)
+            if mac_addr == "unknown":
+                log.warn(f"no MAC address found for {msg.hostname}, skipping notification")
+                return
+            if mac_addr in self.notifications:
+                self.notifications[mac_addr].append(msg.data)
+            else:
+                self.notifications.update({mac_addr: [msg.data]})
+
+        else:
+            for _, client in connmgr.connected_clients.items():
+                if client.mac_addr == "unknown":
+                    log.warn(f"no MAC address found for {client.hostname}, skipping")
+                    continue
+                if client.mac_addr in self.notifications:
+                    self.notifications[client.mac_addr].append(msg.data)
+                else:
+                    self.notifications.update({client.mac_addr: [msg.data]})
+
+    def done(self, ws, id):
+        client = connmgr.get_client_by_ws(ws)
+        for i, notification in enumerate(self.notifications[client.mac_addr]):
+            if notification.id == id:
+                connmgr.set_notification_active(ws, 0)
+                self.notifications[client.mac_addr].pop(i)
+                break
+
+    async def dequeue(self):
+        while True:
+            try:
+                for mac_addr, notifications in self.notifications.items():
+                    # log.debug(f"dequeueing notifications for {mac_addr}: {notifications} (len={len(notifications)})")
+                    if len(notifications) > 0:
+                        ws = connmgr.get_ws_by_mac(mac_addr)
+                        if ws is None:
+                            continue
+                        if connmgr.is_notification_active(ws):
+                            log.debug(f"{mac_addr} has active notification")
+                            continue
+
+                        for i, notification in enumerate(notifications):
+                            if notification.id > int(time.time() * 1000):
+                                continue
+                            elif notification.id < int((time.time() - 3600) * 1000):
+                                # TODO should we make this configurable ?
+                                # or at least use a constant and reject notifications with old ID in the API
+                                log.warning("expiring notification older than 1h")
+                                notifications.pop(i)
+
+                            connmgr.set_notification_active(ws, notification.id)
+                            log.debug(f"dequeueing notification for {mac_addr}: {notification}")
+                            msg = NotifyMsg(data=notification)
+                            asyncio.ensure_future(ws.send_text(msg.model_dump_json(exclude={'hostname'}, exclude_none=True)))
+                            # don't send more than one notification at once
+                            break
+            except Exception as e:
+                log.debug(f"exception during dequeue: {e}")
+
+            await asyncio.sleep(1)
 
 
 class WakeEvent:
@@ -519,6 +613,8 @@ async def startup_event():
         app.command_endpoint = None
         log.error(f"failed to initialize command endpoint ({e})")
 
+    app.notify_queue = NotifyQueue()
+
 
 @app.get("/", response_class=RedirectResponse)
 def api_redirect_admin():
@@ -697,7 +793,7 @@ async def api_get_release(release: GetRelease = Depends()):
         return JSONResponse(content=releases)
 
 class GetStatus(BaseModel):
-    type: Literal['asyncio_tasks'] = Field (Query(..., description='Status type'))
+    type: Literal['asyncio_tasks', 'notify_queue'] = Field (Query(..., description='Status type'))
 
 
 @app.get("/api/status")
@@ -709,6 +805,11 @@ async def api_get_status(status: GetStatus = Depends()):
         tasks = asyncio.all_tasks()
         for task in tasks:
             res.append(f"{task.get_name()}: {task.get_coro()}")
+
+    elif status.type == "notify_queue":
+        for mac, notifications in app.notify_queue.notifications.items():
+            log.debug(f"{mac}: {notifications}")
+            res.append(f"{mac}: {notifications}")
 
     return JSONResponse(res)
 
@@ -764,7 +865,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
             json.dump(devices, devices_file)
         devices_file.close()
     elif device.action == 'notify':
-        return await connmgr.notify(data)
+        app.notify_queue.add(data)
     else:
         # Catch all assuming anything else is a device command
         return await device_command(data, device.action)
@@ -832,6 +933,9 @@ async def websocket_endpoint(
 
             elif "wake_end" in msg:
                 pass
+
+            elif "notify_done" in msg:
+                app.notify_queue.done(websocket, msg["notify_done"])
 
             elif "cmd" in msg:
                 if msg["cmd"] == "endpoint":
