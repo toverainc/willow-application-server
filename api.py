@@ -24,6 +24,9 @@ import time
 from requests import get
 from shutil import move
 from typing import Annotated, Dict
+import urllib
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
@@ -383,6 +386,24 @@ async def device_command(data, command):
         return "Error"
 
 
+def do_get_request(url, verify=False, timeout=(1, 5)):
+    try:
+        parsed_url = urllib.parse.urlparse(url)
+
+        if parsed_url.username and parsed_url.password:
+            # Request with auth
+            basic_auth = requests.auth.HTTPBasicAuth(parsed_url.username, parsed_url.password)
+            response = requests.get(url, verify=verify, timeout=timeout, auth=basic_auth)
+        else:
+            # Request without auth
+            response = requests.get(url, verify=verify, timeout=timeout)
+        return response
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return None
+
+
 def get_json_from_file(path):
     try:
         with open(path, "r") as file:
@@ -600,6 +621,17 @@ def init_command_endpoint(app):
 
             if "rest_auth_user" in user_config:
                 app.command_endpoint.config.set_auth_user(user_config["rest_auth_user"])
+
+
+def warm_tts(data):
+    if data["audio_url"]:
+        try:
+            if "/api/tts" in data["audio_url"]:
+                do_get_request(data["audio_url"])
+                log.debug("TTS ready - passing to clients")
+        except:
+            pass
+    return
 
 
 @app.on_event("startup")
@@ -865,6 +897,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
             json.dump(devices, devices_file)
         devices_file.close()
     elif device.action == 'notify':
+        warm_tts(data["data"])
         app.notify_queue.add(data)
     else:
         # Catch all assuming anything else is a device command
