@@ -201,6 +201,7 @@ class NotifyData(BaseModel):
     audio_url: Optional[str] = None
     backlight: bool = False
     backlight_max: bool = False
+    cancel: bool = False
     id: int = int(time.time() * 1000)
     repeat: int = 1
     strobe_period_ms: Optional[int] = 0
@@ -256,6 +257,12 @@ class NotifyQueue():
                 connmgr.set_notification_active(ws, 0)
                 self.notifications[client.mac_addr].pop(i)
                 break
+
+        data = NotifyData(id=id, cancel=True)
+        # explicitly set cmd so we can use exclude_unset
+        msg_cancel = NotifyMsg(cmd="notify", data=data)
+        log.info(msg_cancel)
+        asyncio.ensure_future(connmgr.broadcast(msg_cancel.model_dump_json(exclude_unset=True)))
 
     async def dequeue(self):
         while True:
