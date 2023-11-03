@@ -30,7 +30,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Literal, Optional
 
 from command_endpoints.ha_rest import HomeAssistantRestEndpoint
@@ -215,15 +215,15 @@ class NotifyMsg(BaseModel):
     hostname: Optional[str] = None
 
 
-class NotifyQueue():
-    notifications: Dict[str, List[NotifyData]]
+class NotifyQueue(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self):
-        self.notifications = {}
+    notifications: Dict[str, List[NotifyData]] = {}
+    task: asyncio.Task = None
 
+    def start(self):
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.dequeue())
-
 
     def add(self, msg):
         msg = NotifyMsg.model_validate_json(json.dumps(msg))
@@ -651,6 +651,7 @@ async def startup_event():
         log.error(f"failed to initialize command endpoint ({e})")
 
     app.notify_queue = NotifyQueue()
+    app.notify_queue.start()
 
 
 @app.get("/", response_class=RedirectResponse)
