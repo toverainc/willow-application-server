@@ -624,14 +624,12 @@ def init_command_endpoint(app):
 
 
 def warm_tts(data):
-    if data["audio_url"]:
-        try:
-            if "/api/tts" in data["audio_url"]:
-                do_get_request(data["audio_url"])
-                log.debug("TTS ready - passing to clients")
-        except:
-            pass
-    return
+    try:
+        if "/api/tts" in data["audio_url"]:
+            do_get_request(data["audio_url"])
+            log.debug("TTS ready - passing to clients")
+    except:
+        pass
 
 
 @app.on_event("startup")
