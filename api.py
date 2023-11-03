@@ -393,7 +393,7 @@ async def device_command(data, command):
         return "Error"
 
 
-def do_get_request(url, verify=False, timeout=(1, 5)):
+def do_get_request(url, verify=False, timeout=(1, 60)):
     try:
         parsed_url = urllib.parse.urlparse(url)
 
