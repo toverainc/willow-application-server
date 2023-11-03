@@ -198,6 +198,7 @@ class ConnMgr:
 
 
 class NotifyData(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     audio_url: Optional[str] = None
     backlight: bool = False
     backlight_max: bool = False
@@ -210,13 +211,15 @@ class NotifyData(BaseModel):
 
 
 class NotifyMsg(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     cmd: str = "notify"
     data: NotifyData
     hostname: Optional[str] = None
 
 
 class NotifyQueue(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     notifications: Dict[str, List[NotifyData]] = {}
     task: asyncio.Task = None
