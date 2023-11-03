@@ -845,9 +845,7 @@ async def api_get_status(status: GetStatus = Depends()):
             res.append(f"{task.get_name()}: {task.get_coro()}")
 
     elif status.type == "notify_queue":
-        for mac, notifications in app.notify_queue.notifications.items():
-            log.debug(f"{mac}: {notifications}")
-            res.append(f"{mac}: {notifications}")
+        return JSONResponse(app.notify_queue.model_dump(exclude={'task'}))
 
     return JSONResponse(res)
 
