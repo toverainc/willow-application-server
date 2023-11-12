@@ -906,7 +906,6 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
             json.dump(devices, devices_file)
         devices_file.close()
     elif device.action == 'notify':
-        # this potentially causes a notification being delayed
         log.debug(f"received notify command on API: {data}")
         warm_tts(data["data"])
         app.notify_queue.add(data)
