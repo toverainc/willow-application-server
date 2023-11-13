@@ -58,6 +58,8 @@ from app.internal.was import (
     get_release_url,
 )
 
+from .internal.client import Client
+
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
@@ -113,30 +115,6 @@ def is_safe_path(basedir, path, follow_symlinks=True):
     else:
         matchpath = os.path.abspath(path)
     return basedir == os.path.commonpath((basedir, matchpath))
-
-
-class Client:
-    def __init__(self, ua):
-        self.hostname = "unknown"
-        self.platform = "unknown"
-        self.mac_addr = "unknown"
-        self.ua = ua
-        self.notification_active = 0
-
-    def set_hostname(self, hostname):
-        self.hostname = hostname
-
-    def set_platform(self, platform):
-        self.platform = platform
-
-    def set_mac_addr(self, mac_addr):
-        self.mac_addr = mac_addr
-
-    def is_notification_active(self):
-        return self.notification_active != 0
-
-    def set_notification_active(self, id):
-        self.notification_active = id
 
 
 class ConnMgr:
