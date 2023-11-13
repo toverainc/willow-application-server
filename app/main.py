@@ -33,13 +33,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Literal, Optional
 
-from command_endpoints.ha_rest import HomeAssistantRestEndpoint
-from command_endpoints.ha_ws import HomeAssistantWebSocketEndpoint, HomeAssistantWebSocketEndpointNotSupportedException
-from command_endpoints.mqtt import MqttConfig, MqttEndpoint
-from command_endpoints.openhab import OpenhabEndpoint
-from command_endpoints.rest import RestEndpoint
+from app.internal.command_endpoints.ha_rest import HomeAssistantRestEndpoint
+from app.internal.command_endpoints.ha_ws import (
+    HomeAssistantWebSocketEndpoint,
+    HomeAssistantWebSocketEndpointNotSupportedException
+)
+from app.internal.command_endpoints.mqtt import MqttConfig, MqttEndpoint
+from app.internal.command_endpoints.openhab import OpenhabEndpoint
+from app.internal.command_endpoints.rest import RestEndpoint
 
-from shared.was import (
+from app.internal.was import (
     DIR_ASSET,
     DIR_OTA,
     STORAGE_USER_CLIENT_CONFIG,
