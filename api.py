@@ -151,7 +151,7 @@ class ConnMgr:
         for client in self.connected_clients:
             try:
                 await client.send_text(msg)
-            except WebSocketException as e:
+            except Exception as e:
                 log.error(f"Failed to broadcast message: {e}")
 
     def disconnect(self, ws: WebSocket):
