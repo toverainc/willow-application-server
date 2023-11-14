@@ -31,13 +31,12 @@ from app.const import (
     DIR_ASSET,
     DIR_OTA,
     STORAGE_USER_CONFIG,
-    STORAGE_USER_NVS,
-    STORAGE_USER_WAS,
     URL_WILLOW_RELEASES,
 )
 
 from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
+    build_msg,
     get_nvs,
     get_release_url,
     get_tz_config,
@@ -116,14 +115,6 @@ Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
 
 
-def build_msg(config, container):
-    try:
-        msg = json.dumps({container: json.loads(config)}, sort_keys=True)
-        return msg
-    except Exception as e:
-        log.error(f"Failed to build config message: {e}")
-
-
 def get_config_ws():
     config = None
     try:
@@ -200,65 +191,6 @@ def get_releases_willow():
     else:
         releases = releases_local + releases
     return releases
-
-
-async def post_config(request, apply=False):
-    data = await request.json()
-    if 'hostname' in data:
-        hostname = data["hostname"]
-        data = get_config()
-        msg = build_msg(json.dumps(data), "config")
-        try:
-            ws = connmgr.get_client_by_hostname(hostname)
-            await ws.send_text(msg)
-            return "Success"
-        except Exception as e:
-            log.error(f"Failed to apply config to {hostname} ({e})")
-            return "Error"
-    else:
-        data = json.dumps(data)
-        save_json_to_file(STORAGE_USER_CONFIG, data)
-        msg = build_msg(data, "config")
-        log.debug(str(msg))
-        if apply:
-            await connmgr.broadcast(msg)
-        return "Success"
-
-
-async def post_was(request, apply=False):
-    data = await request.json()
-    data = json.dumps(data)
-    save_json_to_file(STORAGE_USER_WAS, data)
-    return "Success"
-
-
-async def post_nvs(request, apply=False):
-    data = await request.json()
-    if 'hostname' in data:
-        hostname = data["hostname"]
-        data = get_nvs()
-        msg = build_msg(json.dumps(data), "nvs")
-        try:
-            ws = connmgr.get_client_by_hostname(hostname)
-            await ws.send_text(msg)
-            return "Success"
-        except Exception as e:
-            log.error(f"Failed to apply config to {hostname} ({e})")
-            return "Error"
-    else:
-        data = json.dumps(data)
-        save_json_to_file(STORAGE_USER_NVS, data)
-        msg = build_msg(data, "nvs")
-        log.debug(str(msg))
-        if apply:
-            await connmgr.broadcast(msg)
-        return "Success"
-
-
-def save_json_to_file(path, content):
-    with open(path, "w") as config_file:
-        config_file.write(content)
-    config_file.close()
 
 
 @app.on_event("startup")
@@ -381,23 +313,6 @@ async def api_get_release(release: GetRelease = Depends()):
 
 
 app.include_router(status.router)
-
-
-class PostConfig(BaseModel):
-    type: Literal['config', 'nvs', 'was'] = Field (Query(..., description='Configuration type'))
-    apply: bool = Field (Query(..., description='Apply configuration to device'))
-
-
-@app.post("/api/config")
-async def api_post_config(request: Request, config: PostConfig = Depends()):
-    log.debug('API POST CONFIG: Request')
-    if config.type == "config":
-        await post_config(request, config.apply)
-        init_command_endpoint(app)
-    elif config.type == "nvs":
-        await post_nvs(request, config.apply)
-    elif config.type == "was":
-        await post_was(request, config.apply)
 
 
 class PostRelease(BaseModel):

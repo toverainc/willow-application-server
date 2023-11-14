@@ -26,6 +26,14 @@ log = getLogger("WAS")
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+def build_msg(config, container):
+    try:
+        msg = json.dumps({container: json.loads(config)}, sort_keys=True)
+        return msg
+    except Exception as e:
+        log.error(f"Failed to build config message: {e}")
+
+
 def construct_url(host, port, tls=False, ws=False):
     if tls:
         if ws:
@@ -195,6 +203,65 @@ def get_was_config():
 def merge_dict(dict_1, dict_2):
     result = dict_1 | dict_2
     return result
+
+
+async def post_config(request, apply=False):
+    data = await request.json()
+    if 'hostname' in data:
+        hostname = data["hostname"]
+        data = get_config()
+        msg = build_msg(json.dumps(data), "config")
+        try:
+            ws = request.app.connmgr.get_client_by_hostname(hostname)
+            await ws.send_text(msg)
+            return "Success"
+        except Exception as e:
+            log.error(f"Failed to apply config to {hostname} ({e})")
+            return "Error"
+    else:
+        data = json.dumps(data)
+        save_json_to_file(STORAGE_USER_CONFIG, data)
+        msg = build_msg(data, "config")
+        log.debug(str(msg))
+        if apply:
+            await request.app.connmgr.broadcast(msg)
+        return "Success"
+
+
+async def post_nvs(request, apply=False):
+    data = await request.json()
+    if 'hostname' in data:
+        hostname = data["hostname"]
+        data = get_nvs()
+        msg = build_msg(json.dumps(data), "nvs")
+        try:
+            ws = request.app.connmgr.get_client_by_hostname(hostname)
+            await ws.send_text(msg)
+            return "Success"
+        except Exception as e:
+            log.error(f"Failed to apply config to {hostname} ({e})")
+            return "Error"
+    else:
+        data = json.dumps(data)
+        save_json_to_file(STORAGE_USER_NVS, data)
+        msg = build_msg(data, "nvs")
+        log.debug(str(msg))
+        if apply:
+            await request.app.connmgr.broadcast(msg)
+        return "Success"
+
+
+async def post_was(request, apply=False):
+    data = await request.json()
+    data = json.dumps(data)
+    save_json_to_file(STORAGE_USER_WAS, data)
+    return "Success"
+
+
+def save_json_to_file(path, content):
+    with open(path, "w") as config_file:
+        config_file.write(content)
+    config_file.close()
 
 
 def test_url(url, error_msg, ws=False):
