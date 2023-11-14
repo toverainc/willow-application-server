@@ -1,13 +1,24 @@
 from logging import getLogger
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from requests import get
 
 from ..const import URL_WILLOW_CONFIG
-from ..internal.was import construct_url, get_config, get_multinet, get_nvs, get_tz_config, get_was_config
+from ..internal.command_endpoints.main import init_command_endpoint
+from ..internal.was import (
+    construct_url,
+    get_config,
+    get_multinet,
+    get_nvs,
+    get_tz_config,
+    get_was_config,
+    post_config,
+    post_nvs,
+    post_was,
+)
 
 
 log = getLogger("WAS")
@@ -56,3 +67,20 @@ async def api_get_config(config: GetConfig = Depends()):
     elif config.type == "was":
         config = get_was_config()
         return JSONResponse(content=config)
+
+
+class PostConfig(BaseModel):
+    type: Literal['config', 'nvs', 'was'] = Field(Query(..., description='Configuration type'))
+    apply: bool = Field(Query(..., description='Apply configuration to device'))
+
+
+@router.post("/config")
+async def api_post_config(request: Request, config: PostConfig = Depends()):
+    log.debug('API POST CONFIG: Request')
+    if config.type == "config":
+        await post_config(request, config.apply)
+        init_command_endpoint(request.app)
+    elif config.type == "nvs":
+        await post_nvs(request, config.apply)
+    elif config.type == "was":
+        await post_was(request, config.apply)
