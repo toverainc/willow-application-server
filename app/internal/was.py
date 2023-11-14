@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import requests
 import socket
@@ -9,6 +10,16 @@ from logging import getLogger
 
 from num2words import num2words
 from websockets.sync.client import connect
+
+from ..const import (
+    STORAGE_TZ,
+    STORAGE_USER_CLIENT_CONFIG,
+    STORAGE_USER_CONFIG,
+    STORAGE_USER_MULTINET,
+    STORAGE_USER_NVS,
+    STORAGE_USER_WAS,
+    URL_WILLOW_TZ,
+)
 
 
 log = getLogger("WAS")
@@ -60,6 +71,10 @@ def do_get_request(url, verify=False, timeout=(1, 60)):
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return None
+
+
+def get_config():
+    return get_json_from_file(STORAGE_USER_CONFIG)
 
 
 def get_devices():
@@ -124,6 +139,25 @@ def get_ip():
     return ip
 
 
+def get_json_from_file(path):
+    try:
+        with open(path, "r") as file:
+            data = json.load(file)
+        file.close()
+    except Exception:
+        data = {}
+
+    return data
+
+
+def get_multinet():
+    return get_json_from_file(STORAGE_USER_MULTINET)
+
+
+def get_nvs():
+    return get_json_from_file(STORAGE_USER_NVS)
+
+
 # TODO: Support HTTPs
 def get_release_url(was_url, version, platform):
     url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
@@ -142,6 +176,20 @@ def get_tz():
         tz = {}
 
     return tz
+
+
+def get_tz_config(refresh=False):
+    if refresh:
+        tz = requests.get(URL_WILLOW_TZ).json()
+        with open(STORAGE_TZ, "w") as tz_file:
+            json.dump(tz, tz_file)
+        tz_file.close()
+
+    return get_json_from_file(STORAGE_TZ)
+
+
+def get_was_config():
+    return get_json_from_file(STORAGE_USER_WAS)
 
 
 def merge_dict(dict_1, dict_2):
