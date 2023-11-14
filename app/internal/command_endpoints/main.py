@@ -18,7 +18,7 @@ def init_command_endpoint(app):
     # call command_endpoint.stop() to avoid leaking asyncio task
     try:
         app.command_endpoint.stop()
-    except:
+    except Exception:
         pass
 
     user_config = get_config()

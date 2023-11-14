@@ -54,7 +54,7 @@ app = FastAPI(title="Willow Application Server",
 log = logging.getLogger("WAS")
 try:
     log.setLevel(os.environ.get("WAS_LOG_LEVEL").upper())
-except:
+except Exception:
     pass
 
 wake_session = None
