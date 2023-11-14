@@ -1,24 +1,29 @@
 import json
 import magic
 import os
+import random
 import re
 import requests
 import socket
+import time
 import urllib
 import urllib3
 
+from hashlib import sha256
 from logging import getLogger
 
 from num2words import num2words
 from websockets.sync.client import connect
 
 from ..const import (
+    DIR_OTA,
     STORAGE_TZ,
     STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
     STORAGE_USER_WAS,
+    URL_WILLOW_RELEASES,
     URL_WILLOW_TZ,
 )
 
@@ -181,6 +186,64 @@ def get_release_url(was_url, version, platform):
     return url
 
 
+# TODO: Find a better way but we need to handle every error possible
+def get_releases_local():
+    local_dir = f"{DIR_OTA}/local"
+    assets = []
+    if not os.path.exists(local_dir):
+        return assets
+
+    url = "https://heywillow.io"
+
+    for asset_name in os.listdir(local_dir):
+        if '.bin' in asset_name:
+            file = f"{DIR_OTA}/local/{asset_name}"
+            created_at = os.path.getctime(file)
+            created_at = time.ctime(created_at)
+            created_at = time.strptime(created_at)
+            created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", created_at)
+            with open(file, "rb") as f:
+                bytes = f.read()
+                checksum = sha256(bytes).hexdigest()
+            asset = {}
+            asset["name"] = f"willow-ota-{asset_name}"
+            asset["tag_name"] = f"willow-ota-{asset_name}"
+            asset["platform"] = asset_name.replace('.bin', '')
+            asset["platform_name"] = asset["platform"]
+            asset["platform_image"] = "https://heywillow.io/images/esp32_s3_box.png"
+            asset["build_type"] = "ota"
+            asset["url"] = url
+            asset["id"] = random.randint(10, 99)
+            asset["content_type"] = "raw"
+            asset["size"] = os.path.getsize(file)
+            asset["created_at"] = created_at
+            asset["browser_download_url"] = url
+            asset["sha256"] = checksum
+            assets.append(asset)
+
+    if assets == []:
+        return []
+    else:
+        return [{"name": "local",
+                 "tag_name": "local",
+                 "id": random.randint(10, 99),
+                 "url": url,
+                 "html_url": url,
+                 "assets": assets}]
+
+
+def get_releases_willow():
+    releases = requests.get(URL_WILLOW_RELEASES)
+    releases = releases.json()
+    try:
+        releases_local = get_releases_local()
+    except:
+        pass
+    else:
+        releases = releases_local + releases
+    return releases
+
+
 def get_tz():
     try:
         with open("tz.json", "r") as config_file:
@@ -204,6 +267,14 @@ def get_tz_config(refresh=False):
 
 def get_was_config():
     return get_json_from_file(STORAGE_USER_WAS)
+
+
+def get_was_url():
+    try:
+        nvs = get_nvs()
+        return nvs["WAS"]["URL"]
+    except Exception:
+        return False
 
 
 def is_safe_path(basedir, path, follow_symlinks=True):
