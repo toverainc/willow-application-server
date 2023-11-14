@@ -62,6 +62,7 @@ from .internal.client import Client
 from .internal.connmgr import ConnMgr
 from .internal.notify import NotifyQueue
 from .internal.wake import WakeEvent, WakeSession
+from .routers import status
 
 
 logging.basicConfig(
@@ -615,24 +616,8 @@ async def api_get_release(release: GetRelease = Depends()):
 
         return JSONResponse(content=releases)
 
-class GetStatus(BaseModel):
-    type: Literal['asyncio_tasks', 'notify_queue'] = Field (Query(..., description='Status type'))
 
-
-@app.get("/api/status")
-async def api_get_status(status: GetStatus = Depends()):
-    log.debug('API GET STATUS: Request')
-    res = []
-
-    if status.type == "asyncio_tasks":
-        tasks = asyncio.all_tasks()
-        for task in tasks:
-            res.append(f"{task.get_name()}: {task.get_coro()}")
-
-    elif status.type == "notify_queue":
-        return JSONResponse(app.notify_queue.model_dump(exclude={'connmgr', 'task'}))
-
-    return JSONResponse(res)
+app.include_router(status.router)
 
 
 class PostConfig(BaseModel):
