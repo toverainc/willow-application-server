@@ -43,7 +43,7 @@ async def api_get_config(config: GetConfig = Depends()):
     # Otherwise handle other config types
     if config.default:
         default_config = get(f"{URL_WILLOW_CONFIG}?type={config.type}").json()
-        if type(default_config) == dict:
+        if isinstance(default_config, dict):
             return default_config
         else:
             raise HTTPException(status_code=400, detail="Invalid default config")
