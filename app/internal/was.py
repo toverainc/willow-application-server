@@ -2,9 +2,17 @@ import json
 import re
 import requests
 import socket
+import urllib
+import urllib3
+
+from logging import getLogger
 
 from num2words import num2words
 from websockets.sync.client import connect
+
+
+log = getLogger("WAS")
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def construct_url(host, port, tls=False, ws=False):
@@ -20,6 +28,53 @@ def construct_url(host, port, tls=False, ws=False):
             scheme = "http"
 
     return f"{scheme}://{host}:{port}"
+
+
+async def device_command(connmgr, data, command):
+    if 'hostname' in data:
+        hostname = data["hostname"]
+
+    msg = json.dumps({'cmd': command})
+    try:
+        ws = connmgr.get_client_by_hostname(hostname)
+        await ws.send_text(msg)
+        return "Success"
+    except Exception as e:
+        log.error(f"Failed to send restart command to {data['hostname']} ({e})")
+        return "Error"
+
+
+def do_get_request(url, verify=False, timeout=(1, 60)):
+    try:
+        parsed_url = urllib.parse.urlparse(url)
+
+        if parsed_url.username and parsed_url.password:
+            # Request with auth
+            basic_auth = requests.auth.HTTPBasicAuth(parsed_url.username, parsed_url.password)
+            response = requests.get(url, verify=verify, timeout=timeout, auth=basic_auth)
+        else:
+            # Request without auth
+            response = requests.get(url, verify=verify, timeout=timeout)
+        return response
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return None
+
+
+def get_devices():
+    devices = []
+
+    if os.path.isfile(STORAGE_USER_CLIENT_CONFIG):
+        with open(STORAGE_USER_CLIENT_CONFIG, "r") as devices_file:
+            devices = json.load(devices_file)
+        devices_file.close()
+    else:
+        with open(STORAGE_USER_CLIENT_CONFIG, "x") as devices_file:
+            json.dump(devices, devices_file)
+        devices_file.close()
+
+    return devices
 
 
 def get_ha_commands_for_entity(entity):
@@ -199,3 +254,12 @@ def validate_wifi_ssid(ssid):
         #st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
         return False
     return True
+
+
+def warm_tts(data):
+    try:
+        if "/api/tts" in data["audio_url"]:
+            do_get_request(data["audio_url"])
+            log.debug("TTS ready - passing to clients")
+    except:
+        pass
