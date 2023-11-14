@@ -125,16 +125,10 @@ def api_redirect_admin():
 
 
 app.include_router(asset.router)
-
-
 app.include_router(client.router)
-
 app.include_router(config.router)
-
 app.include_router(ota.router)
-
 app.include_router(release.router)
-
 app.include_router(status.router)
 
 
