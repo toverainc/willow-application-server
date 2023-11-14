@@ -12,13 +12,12 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 import magic
 from pathlib import Path
 import random
-import requests
 import time
 from requests import get
 from shutil import move
@@ -26,19 +25,15 @@ from typing import Annotated
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Literal, Optional
+from typing import Literal
 
 from app.const import (
     DIR_ASSET,
     DIR_OTA,
     STORAGE_USER_CONFIG,
-    STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
     STORAGE_USER_WAS,
-    STORAGE_TZ,
     URL_WILLOW_RELEASES,
-    URL_WILLOW_CONFIG,
-    URL_WILLOW_TZ,
 )
 from app.internal.command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from app.internal.command_endpoints.ha_ws import (
@@ -50,8 +45,10 @@ from app.internal.command_endpoints.openhab import OpenhabEndpoint
 from app.internal.command_endpoints.rest import RestEndpoint
 
 from app.internal.was import (
-    construct_url,
+    get_config,
+    get_nvs,
     get_release_url,
+    get_tz_config,
 )
 
 from .internal.client import Client
@@ -59,6 +56,7 @@ from .internal.connmgr import ConnMgr
 from .internal.notify import NotifyQueue
 from .internal.wake import WakeEvent, WakeSession
 from .routers import client
+from .routers import config
 from .routers import status
 
 
@@ -144,43 +142,6 @@ def get_config_ws():
     finally:
         config_file.close()
         return config
-
-
-def get_json_from_file(path):
-    try:
-        with open(path, "r") as file:
-            data = json.load(file)
-        file.close()
-    except Exception:
-        data = {}
-
-    return data
-
-
-def get_config():
-    return get_json_from_file(STORAGE_USER_CONFIG)
-
-
-def get_multinet():
-    return get_json_from_file(STORAGE_USER_MULTINET)
-
-
-def get_nvs():
-    return get_json_from_file(STORAGE_USER_NVS)
-
-
-def get_was_config():
-    return get_json_from_file(STORAGE_USER_WAS)
-
-
-def get_tz_config(refresh = False):
-    if refresh:
-        tz = get(URL_WILLOW_TZ).json()
-        with open(STORAGE_TZ, "w") as tz_file:
-            json.dump(tz, tz_file)
-        tz_file.close()
-
-    return get_json_from_file(STORAGE_TZ)
 
 
 def get_was_url():
@@ -420,47 +381,7 @@ async def api_get_asset(asset: GetAsset = Depends()):
 
 app.include_router(client.router)
 
-
-class GetConfig(BaseModel):
-    type: Literal['config', 'nvs', 'ha_url', 'ha_token', 'multinet', 'was', 'tz'] = Field (Query(..., description='Configuration type'))
-    default: Optional[bool] = False
-
-
-@app.get("/api/config")
-async def api_get_config(config: GetConfig = Depends()):
-    log.debug('API GET CONFIG: Request')
-    # TZ is special
-    if config.type == "tz":
-        config = get_tz_config(refresh=config.default)
-        return JSONResponse(content=config)
-
-    # Otherwise handle other config types
-    if config.default:
-        default_config = requests.get(f"{URL_WILLOW_CONFIG}?type={config.type}").json()
-        if type(default_config) == dict:
-            return default_config
-        else:
-            raise HTTPException(status_code=400, detail="Invalid default config")
-
-    if config.type == "nvs":
-        nvs = get_nvs()
-        return JSONResponse(content=nvs)
-    elif config.type == "config":
-        config = get_config()
-        return JSONResponse(content=config)
-    elif config.type == "ha_token":
-        config = get_config()
-        return PlainTextResponse(config["hass_token"])
-    elif config.type == "ha_url":
-        config = get_config()
-        url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
-        return PlainTextResponse(url)
-    elif config.type == "multinet":
-        config = get_multinet()
-        return JSONResponse(content=config)
-    elif config.type == "was":
-        config = get_was_config()
-        return JSONResponse(content=config)
+app.include_router(config.router)
 
 class GetOta(BaseModel):
     version: str = Field (Query(..., description='OTA Version'))
