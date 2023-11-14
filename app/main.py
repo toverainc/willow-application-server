@@ -23,9 +23,6 @@ import time
 from requests import get
 from shutil import move
 from typing import Annotated
-import urllib
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -34,7 +31,6 @@ from typing import Literal, Optional
 from app.const import (
     DIR_ASSET,
     DIR_OTA,
-    STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
@@ -148,53 +144,6 @@ def get_config_ws():
     finally:
         config_file.close()
         return config
-
-
-def get_devices():
-    devices = []
-
-    if os.path.isfile(STORAGE_USER_CLIENT_CONFIG):
-        with open(STORAGE_USER_CLIENT_CONFIG, "r") as devices_file:
-            devices = json.load(devices_file)
-        devices_file.close()
-    else:
-        with open(STORAGE_USER_CLIENT_CONFIG, "x") as devices_file:
-            json.dump(devices, devices_file)
-        devices_file.close()
-
-    return devices
-
-
-async def device_command(data, command):
-    if 'hostname' in data:
-        hostname = data["hostname"]
-
-    msg = json.dumps({'cmd': command})
-    try:
-        ws = connmgr.get_client_by_hostname(hostname)
-        await ws.send_text(msg)
-        return "Success"
-    except Exception as e:
-        log.error(f"Failed to send restart command to {data['hostname']} ({e})")
-        return "Error"
-
-
-def do_get_request(url, verify=False, timeout=(1, 60)):
-    try:
-        parsed_url = urllib.parse.urlparse(url)
-
-        if parsed_url.username and parsed_url.password:
-            # Request with auth
-            basic_auth = requests.auth.HTTPBasicAuth(parsed_url.username, parsed_url.password)
-            response = requests.get(url, verify=verify, timeout=timeout, auth=basic_auth)
-        else:
-            # Request without auth
-            response = requests.get(url, verify=verify, timeout=timeout)
-        return response
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        return None
 
 
 def get_json_from_file(path):
@@ -416,15 +365,6 @@ def init_command_endpoint(app):
                 app.command_endpoint.config.set_auth_user(user_config["rest_auth_user"])
 
 
-def warm_tts(data):
-    try:
-        if "/api/tts" in data["audio_url"]:
-            do_get_request(data["audio_url"])
-            log.debug("TTS ready - passing to clients")
-    except:
-        pass
-
-
 @app.on_event("startup")
 async def startup_event():
     migrate_user_files()
@@ -602,48 +542,6 @@ async def api_post_config(request: Request, config: PostConfig = Depends()):
         await post_nvs(request, config.apply)
     elif config.type == "was":
         await post_was(request, config.apply)
-
-class PostClient(BaseModel):
-    action: Literal['restart', 'update', 'config', 'identify', 'notify'] = Field (Query(..., description='Client action'))
-
-
-@app.post("/api/client")
-async def api_post_client(request: Request, device: PostClient = Depends()):
-    log.debug('API POST CLIENT: Request')
-    data = await request.json()
-
-    if device.action == "update":
-        msg = json.dumps({'cmd': 'ota_start', 'ota_url': data["ota_url"]})
-        try:
-            ws = app.connmgr.get_client_by_hostname(data["hostname"])
-            await ws.send_text(msg)
-        except Exception as e:
-            log.error(f"Failed to trigger OTA ({e})")
-        finally:
-            return
-    elif device.action == "config":
-        devices = get_devices()
-        new = True
-
-        for i, device in enumerate(devices):
-            if device.get("mac_addr") == data['mac_addr']:
-                new = False
-                devices[i] = data
-                break
-
-        if new and len(data['mac_addr']) > 0:
-            devices.append(data)
-
-        with open(STORAGE_USER_CLIENT_CONFIG, "w") as devices_file:
-            json.dump(devices, devices_file)
-        devices_file.close()
-    elif device.action == 'notify':
-        log.debug(f"received notify command on API: {data}")
-        warm_tts(data["data"])
-        app.notify_queue.add(data)
-    else:
-        # Catch all assuming anything else is a device command
-        return await device_command(data, device.action)
 
 
 class PostRelease(BaseModel):
