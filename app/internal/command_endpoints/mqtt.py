@@ -79,7 +79,7 @@ class MqttEndpoint(CommandEndpoint):
             await asyncio.sleep(1)
 
     def cb_connect(self, client, userdata, flags, rc):
-        self.log.info(f"MQTT connected")
+        self.log.info("MQTT connected")
         client.subscribe(self.config.topic)
 
     def cb_msg(self, client, userdata, msg):
