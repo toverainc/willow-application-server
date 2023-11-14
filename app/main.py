@@ -2,26 +2,19 @@ import asyncio
 import json
 import os
 from fastapi import (
-    Depends,
     FastAPI,
-    HTTPException,
     Header,
-    Query,
-    Request,
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 from pathlib import Path
-from requests import get
 from shutil import move
 from typing import Annotated
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Literal
 
 from app.const import (
     DIR_OTA,
@@ -32,7 +25,6 @@ from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
     get_tz_config,
-    is_safe_path,
 )
 
 from .internal.client import Client
@@ -144,43 +136,6 @@ app.include_router(ota.router)
 app.include_router(release.router)
 
 app.include_router(status.router)
-
-
-class PostRelease(BaseModel):
-    action: Literal['cache', 'delete'] = Field (Query(..., description='Release Cache Control'))
-
-
-@app.post("/api/release")
-async def api_post_release(request: Request, release: PostRelease = Depends()):
-    log.debug('API POST RELEASE: Request')
-    if release.action == "cache":
-        data = await request.json()
-
-        dir = f"{DIR_OTA}/{data['version']}"
-        # Check for safe path
-        if not is_safe_path(DIR_OTA, dir):
-            return
-        Path(dir).mkdir(parents=True, exist_ok=True)
-
-        path = f"{dir}/{data['platform']}.bin"
-        if os.path.exists(path):
-            if os.path.getsize(path) == data['size']:
-                return
-            else:
-                os.remove(path)
-
-        resp = get(data['willow_url'])
-        if resp.status_code == 200:
-            with open(path, "wb") as fw:
-                fw.write(resp.content)
-            return
-        else:
-            raise HTTPException(status_code=resp.status_code)
-    elif release.action == "delete":
-        data = await request.json()
-        path = data['path']
-        if is_safe_path(DIR_OTA, path):
-            os.remove(path)
 
 
 @app.websocket("/ws")
