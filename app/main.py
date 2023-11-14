@@ -132,6 +132,8 @@ app.include_router(release.router)
 app.include_router(status.router)
 
 
+# WebSockets with params return 403 when done with APIRouter
+# https://github.com/tiangolo/fastapi/issues/98#issuecomment-1688632239
 @app.websocket("/ws")
 async def websocket_endpoint(
         websocket: WebSocket,
