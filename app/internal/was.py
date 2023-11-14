@@ -366,7 +366,7 @@ def test_url(url, error_msg, ws=False):
     if ok:
         return True
     else:
-        #st.write(f":red[{error_msg}]")
+        # st.write(f":red[{error_msg}]")
         return False
 
 
@@ -424,7 +424,7 @@ def validate_nvs(nvs, skip_check = False):
 
 def validate_string(string, error_msg, min_len=1):
     if len(string) < min_len:
-        #st.write(f":red[{error_msg}]")
+        # st.write(f":red[{error_msg}]")
         return False
     return True
 
@@ -437,13 +437,13 @@ def validate_url(url, ws=False):
 
     if re.match(pattern, url):
         return True
-    #st.write(f":red[Invalid URL: {url}]")
+    # st.write(f":red[Invalid URL: {url}]")
     return False
 
 
 def validate_wifi_psk(psk):
     if len(psk) < 8 or len(psk) > 63:
-        #st.write(":red[Wi-Fi WPA passphrase must be between 8 and 63 ASCII characters]")
+        # st.write(":red[Wi-Fi WPA passphrase must be between 8 and 63 ASCII characters]")
         return False
     return True
 
@@ -452,7 +452,7 @@ def validate_wifi_ssid(ssid):
     # TODO:detect non-ASCII characters (fastapi converts them to \u.... \
     # the re.match we used in CMake doesn't catch those
     if len(ssid) < 2 or len(ssid) > 32:
-        #st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
+        # st.write(":red[Wi-Fi SSID must be between 2 and 32 ASCII characters]")
         return False
     return True
 
