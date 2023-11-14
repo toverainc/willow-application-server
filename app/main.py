@@ -62,6 +62,7 @@ from .internal.client import Client
 from .internal.connmgr import ConnMgr
 from .internal.notify import NotifyQueue
 from .internal.wake import WakeEvent, WakeSession
+from .routers import client
 from .routers import status
 
 
@@ -127,7 +128,6 @@ Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 
 
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
-connmgr = ConnMgr()
 
 
 def build_msg(config, container):
@@ -430,13 +430,15 @@ async def startup_event():
     migrate_user_files()
     get_tz_config(refresh=True)
 
+    app.connmgr = ConnMgr()
+
     try:
         init_command_endpoint(app)
     except Exception as e:
         app.command_endpoint = None
         log.error(f"failed to initialize command endpoint ({e})")
 
-    app.notify_queue = NotifyQueue(connmgr=connmgr)
+    app.notify_queue = NotifyQueue(connmgr=app.connmgr)
     app.notify_queue.start()
 
 
@@ -476,42 +478,7 @@ async def api_get_asset(asset: GetAsset = Depends()):
         raise HTTPException(status_code=404, detail="Audio Asset wrong file format")
 
 
-@app.get("/api/client")
-async def api_get_client():
-    log.debug('API GET CLIENT: Request')
-    devices = get_devices()
-    clients = []
-    macs = []
-    labels = {}
-
-    # This is ugly but it provides a combined response
-    for ws, client in connmgr.connected_clients.items():
-        if not client.mac_addr in macs:
-            labels.update({client.mac_addr: None})
-            for device in devices:
-                if device["mac_addr"] == client.mac_addr:
-                    if device["label"]:
-                        labels.update({client.mac_addr: device["label"]})
-            version = client.ua.replace("Willow/", "")
-            clients.append({
-                'hostname': client.hostname,
-                'platform': client.platform,
-                'mac_addr': client.mac_addr,
-                'ip': ws.client.host,
-                'port': ws.client.port,
-                'version': version,
-                'label': labels[client.mac_addr]
-            })
-            macs.append(client.mac_addr)
-
-    # Sort connected clients by label if we have it
-    # If all devices don't have labels we fall back to sorting by hostname
-    try:
-        sorted_clients = sorted(clients, key=lambda x: x['label'])
-    except:
-        sorted_clients = sorted(clients, key=lambda x: x['hostname'])
-
-    return JSONResponse(content=sorted_clients)
+app.include_router(client.router)
 
 
 class GetConfig(BaseModel):
@@ -648,7 +615,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
     if device.action == "update":
         msg = json.dumps({'cmd': 'ota_start', 'ota_url': data["ota_url"]})
         try:
-            ws = connmgr.get_client_by_hostname(data["hostname"])
+            ws = app.connmgr.get_client_by_hostname(data["hostname"])
             await ws.send_text(msg)
         except Exception as e:
             log.error(f"Failed to trigger OTA ({e})")
@@ -722,7 +689,7 @@ async def websocket_endpoint(
         user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
     client = Client(user_agent)
 
-    await connmgr.accept(websocket, client)
+    await app.connmgr.accept(websocket, client)
     try:
         while True:
             data = await websocket.receive_text()
@@ -767,19 +734,19 @@ async def websocket_endpoint(
                     asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
 
             elif "goodbye" in msg:
-                connmgr.disconnect(websocket)
+                app.connmgr.disconnect(websocket)
 
             elif "hello" in msg:
                 if "hostname" in msg["hello"]:
-                    connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
+                    app.connmgr.update_client(websocket, "hostname", msg["hello"]["hostname"])
                 if "hw_type" in msg["hello"]:
                     platform = msg["hello"]["hw_type"].upper()
-                    connmgr.update_client(websocket, "platform", platform)
+                    app.connmgr.update_client(websocket, "platform", platform)
                 if "mac_addr" in msg["hello"]:
                     mac_addr = hex_mac(msg["hello"]["mac_addr"])
-                    connmgr.update_client(websocket, "mac_addr", mac_addr)
+                    app.connmgr.update_client(websocket, "mac_addr", mac_addr)
 
     except WebSocketDisconnect:
-        connmgr.disconnect(websocket)
+        app.connmgr.disconnect(websocket)
     except ConnectionClosed:
-        connmgr.disconnect(websocket)
+        app.connmgr.disconnect(websocket)
