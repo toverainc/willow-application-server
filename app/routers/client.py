@@ -27,7 +27,7 @@ async def api_get_client(request: Request):
 
     # This is ugly but it provides a combined response
     for ws, client in request.app.connmgr.connected_clients.items():
-        if not client.mac_addr in macs:
+        if client.mac_addr not in macs:
             labels.update({client.mac_addr: None})
             for device in devices:
                 if device["mac_addr"] == client.mac_addr:
