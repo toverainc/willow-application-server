@@ -49,7 +49,7 @@ async def api_get_client(request: Request):
     # If all devices don't have labels we fall back to sorting by hostname
     try:
         sorted_clients = sorted(clients, key=lambda x: x['label'])
-    except:
+    except Exception:
         sorted_clients = sorted(clients, key=lambda x: x['hostname'])
 
     return JSONResponse(content=sorted_clients)

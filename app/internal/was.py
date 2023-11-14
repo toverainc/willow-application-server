@@ -237,7 +237,7 @@ def get_releases_willow():
     releases = releases.json()
     try:
         releases_local = get_releases_local()
-    except:
+    except Exception:
         pass
     else:
         releases = releases_local + releases
@@ -462,5 +462,5 @@ def warm_tts(data):
         if "/api/tts" in data["audio_url"]:
             do_get_request(data["audio_url"])
             log.debug("TTS ready - passing to clients")
-    except:
+    except Exception:
         pass
