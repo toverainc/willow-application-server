@@ -5,7 +5,6 @@ import time
 import websockets
 from . import (
     CommandEndpoint,
-    CommandEndpointConfigException,
     CommandEndpointResult,
     CommandEndpointRuntimeException,
 )
