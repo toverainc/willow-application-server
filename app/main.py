@@ -15,7 +15,6 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
-import magic
 from pathlib import Path
 import random
 import time
@@ -28,7 +27,6 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 from app.const import (
-    DIR_ASSET,
     DIR_OTA,
     STORAGE_USER_CONFIG,
     URL_WILLOW_RELEASES,
@@ -40,12 +38,14 @@ from app.internal.was import (
     get_nvs,
     get_release_url,
     get_tz_config,
+    is_safe_path,
 )
 
 from .internal.client import Client
 from .internal.connmgr import ConnMgr
 from .internal.notify import NotifyQueue
 from .internal.wake import WakeEvent, WakeSession
+from .routers import asset
 from .routers import client
 from .routers import config
 from .routers import status
@@ -80,11 +80,6 @@ app.add_middleware(
 )
 
 
-def get_mime_type(filename):
-    mime_type = magic.Magic(mime=True).from_file(filename)
-    return mime_type
-
-
 def migrate_user_files():
     for user_file in ['user_config.json', 'user_multinet.json', 'user_nvs.json']:
         if os.path.isfile(user_file):
@@ -97,15 +92,6 @@ def hex_mac(mac):
     if type(mac) == list:
         mac = '%02x:%02x:%02x:%02x:%02x:%02x' % (mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
     return mac
-
-
-def is_safe_path(basedir, path, follow_symlinks=True):
-    # resolves symbolic links
-    if follow_symlinks:
-        matchpath = os.path.realpath(path)
-    else:
-        matchpath = os.path.abspath(path)
-    return basedir == os.path.commonpath((basedir, matchpath))
 
 
 # Make sure we always have DIR_OTA
@@ -216,34 +202,7 @@ def api_redirect_admin():
     return "/admin"
 
 
-class GetAsset(BaseModel):
-    asset: str = Field (Query(..., description='Asset'))
-    type: Literal['audio', 'image', 'other'] = Field (Query(..., description='Asset type'))
-
-
-@app.get("/api/asset")
-async def api_get_asset(asset: GetAsset = Depends()):
-    log.debug('API GET ASSET: Request')
-    asset_file = f"{DIR_ASSET}/{asset.type}/{asset.asset}"
-    if not is_safe_path(DIR_ASSET, asset_file):
-        return
-
-    # If we don't have the asset file return 404
-    if not os.path.isfile(asset_file):
-        raise HTTPException(status_code=404, detail="Asset File Not Found")
-
-    # Use libmagic to determine MIME type to be really sure
-    magic_mime_type = get_mime_type(asset_file)
-
-    # Return image and other types
-    if asset.type == "image" or asset.type == "other":
-        return FileResponse(asset_file, media_type=magic_mime_type)
-
-    # Only support audio formats supported by Willow
-    if magic_mime_type == "audio/flac" or magic_mime_type == "audio/x-wav":
-            return FileResponse(asset_file, media_type=magic_mime_type)
-    else:
-        raise HTTPException(status_code=404, detail="Audio Asset wrong file format")
+app.include_router(asset.router)
 
 
 app.include_router(client.router)

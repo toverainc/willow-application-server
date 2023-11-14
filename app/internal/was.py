@@ -1,4 +1,5 @@
 import json
+import magic
 import os
 import re
 import requests
@@ -158,6 +159,11 @@ def get_json_from_file(path):
     return data
 
 
+def get_mime_type(filename):
+    mime_type = magic.Magic(mime=True).from_file(filename)
+    return mime_type
+
+
 def get_multinet():
     return get_json_from_file(STORAGE_USER_MULTINET)
 
@@ -198,6 +204,15 @@ def get_tz_config(refresh=False):
 
 def get_was_config():
     return get_json_from_file(STORAGE_USER_WAS)
+
+
+def is_safe_path(basedir, path, follow_symlinks=True):
+    # resolves symbolic links
+    if follow_symlinks:
+        matchpath = os.path.realpath(path)
+    else:
+        matchpath = os.path.abspath(path)
+    return basedir == os.path.commonpath((basedir, matchpath))
 
 
 def merge_dict(dict_1, dict_2):
