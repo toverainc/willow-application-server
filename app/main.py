@@ -26,7 +26,6 @@ from typing import Annotated
 import urllib
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from uuid import uuid4
 from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -60,6 +59,7 @@ from app.internal.was import (
 from .internal.client import Client
 from .internal.connmgr import ConnMgr
 from .internal.notify import NotifyQueue
+from .internal.wake import WakeEvent, WakeSession
 
 
 logging.basicConfig(
@@ -117,44 +117,6 @@ def is_safe_path(basedir, path, follow_symlinks=True):
     else:
         matchpath = os.path.abspath(path)
     return basedir == os.path.commonpath((basedir, matchpath))
-
-
-class WakeEvent:
-    def __init__(self, client, volume):
-        self.client = client
-        self.volume = volume
-
-
-class WakeSession:
-    def __init__(self):
-        self.events = []
-        self.id = uuid4()
-        self.ts = time.time()
-        log.debug(f"WakeSession with ID {self.id} created")
-
-    def add_event(self, event):
-        log.debug(f"WakeSession {self.id} adding event {event}")
-        self.events.append(event)
-
-    async def cleanup(self, timeout=200):
-        await asyncio.sleep(timeout / 1000)
-        max_volume = -1000.0
-        winner = None
-        for event in self.events:
-            if event.volume > max_volume:
-                max_volume = event.volume
-                winner = event.client
-
-        # notify winner first
-        await winner.send_text(json.dumps({'wake_result': {'won': True}}))
-
-        for event in self.events:
-            if event.client != winner:
-                await event.client.send_text(json.dumps({'wake_result': {'won': False}}))
-
-        log.debug(f"Terminating WakeSession with ID {self.id}. Winner: {winner}")
-        global wake_session
-        wake_session = None
 
 
 # Make sure we always have DIR_OTA
@@ -783,9 +745,15 @@ async def websocket_endpoint(
             # latency sensitive so handle first
             if "wake_start" in msg:
                 global wake_session
-                if wake_session is None:
+                if wake_session is not None:
+                    if wake_session.done:
+                        del wake_session
+                        wake_session = WakeSession()
+                        asyncio.create_task(wake_session.cleanup())
+                else:
                     wake_session = WakeSession()
                     asyncio.create_task(wake_session.cleanup())
+
                 if "wake_volume" in msg["wake_start"]:
                     wake_event = WakeEvent(websocket, msg["wake_start"]["wake_volume"])
                     wake_session.add_event(wake_event)
