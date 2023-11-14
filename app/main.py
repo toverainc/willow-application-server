@@ -12,7 +12,7 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 from pathlib import Path
@@ -48,6 +48,7 @@ from .internal.wake import WakeEvent, WakeSession
 from .routers import asset
 from .routers import client
 from .routers import config
+from .routers import ota
 from .routers import status
 
 
@@ -209,33 +210,7 @@ app.include_router(client.router)
 
 app.include_router(config.router)
 
-class GetOta(BaseModel):
-    version: str = Field (Query(..., description='OTA Version'))
-    platform: str = Field (Query(..., description='OTA Platform'))
-
-
-@app.get("/api/ota")
-async def api_get_ota(ota: GetOta = Depends()):
-    log.debug('API GET OTA: Request')
-    ota_file = f"{DIR_OTA}/{ota.version}/{ota.platform}.bin"
-    if not is_safe_path(DIR_OTA, ota_file):
-        return
-    if not os.path.isfile(ota_file):
-        releases = get_releases_willow()
-        for release in releases:
-            if release["name"] == ota.version:
-                assets = release["assets"]
-                for asset in assets:
-                    if asset["platform"] == ota.platform:
-                        Path(f"{DIR_OTA}/{ota.version}").mkdir(parents=True, exist_ok=True)
-                        r = get(asset["browser_download_url"])
-                        open(ota_file, 'wb').write(r.content)
-
-    # If we still don't have the file return 404 - the platform and/or version doesn't exist
-    if not os.path.isfile(ota_file):
-        raise HTTPException(status_code=404, detail="OTA File Not Found")
-
-    return FileResponse(ota_file)
+app.include_router(ota.router)
 
 
 class GetRelease(BaseModel):
