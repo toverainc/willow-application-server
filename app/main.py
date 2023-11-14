@@ -1,5 +1,4 @@
 import asyncio
-from hashlib import sha256
 import json
 import os
 from fastapi import (
@@ -16,8 +15,6 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 from pathlib import Path
-import random
-import time
 from requests import get
 from shutil import move
 from typing import Annotated
@@ -29,14 +26,11 @@ from typing import Literal
 from app.const import (
     DIR_OTA,
     STORAGE_USER_CONFIG,
-    URL_WILLOW_RELEASES,
 )
 
 from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
-    get_nvs,
-    get_release_url,
     get_tz_config,
     is_safe_path,
 )
@@ -49,6 +43,7 @@ from .routers import asset
 from .routers import client
 from .routers import config
 from .routers import ota
+from .routers import release
 from .routers import status
 
 
@@ -114,72 +109,6 @@ def get_config_ws():
         return config
 
 
-def get_was_url():
-    try:
-        nvs = get_nvs()
-        return nvs["WAS"]["URL"]
-    except Exception:
-        return False
-
-
-# TODO: Find a better way but we need to handle every error possible
-def get_releases_local():
-    local_dir = f"{DIR_OTA}/local"
-    assets = []
-    if not os.path.exists(local_dir):
-        return assets
-
-    url = "https://heywillow.io"
-
-    for asset_name in os.listdir(local_dir):
-        if '.bin' in asset_name:
-            file = f"{DIR_OTA}/local/{asset_name}"
-            created_at = os.path.getctime(file)
-            created_at = time.ctime(created_at)
-            created_at = time.strptime(created_at)
-            created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", created_at)
-            with open(file,"rb") as f:
-                bytes = f.read()
-                checksum = sha256(bytes).hexdigest()
-            asset = {}
-            asset["name"] = f"willow-ota-{asset_name}"
-            asset["tag_name"] = f"willow-ota-{asset_name}"
-            asset["platform"] = asset_name.replace('.bin', '')
-            asset["platform_name"] = asset["platform"]
-            asset["platform_image"] = "https://heywillow.io/images/esp32_s3_box.png"
-            asset["build_type"] = "ota"
-            asset["url"] = url
-            asset["id"] = random.randint(10, 99)
-            asset["content_type"] = "raw"
-            asset["size"] = os.path.getsize(file)
-            asset["created_at"] = created_at
-            asset["browser_download_url"] = url
-            asset["sha256"] = checksum
-            assets.append(asset)
-
-    if assets == []:
-        return []
-    else:
-        return [{"name": "local",
-                 "tag_name": "local",
-                 "id": random.randint(10, 99),
-                 "url": url,
-                 "html_url": url,
-                 "assets": assets}]
-
-
-def get_releases_willow():
-    releases = get(URL_WILLOW_RELEASES)
-    releases = releases.json()
-    try:
-        releases_local = get_releases_local()
-    except:
-        pass
-    else:
-        releases = releases_local + releases
-    return releases
-
-
 @app.on_event("startup")
 async def startup_event():
     migrate_user_files()
@@ -212,39 +141,7 @@ app.include_router(config.router)
 
 app.include_router(ota.router)
 
-
-class GetRelease(BaseModel):
-    type: Literal['was', 'willow'] = Field (Query(..., description='Release type'))
-
-
-@app.get("/api/release")
-async def api_get_release(release: GetRelease = Depends()):
-    log.debug('API GET RELEASE: Request')
-    releases = get_releases_willow()
-    if release.type == "willow":
-        return releases
-    elif release.type == "was":
-        was_url = get_was_url()
-        if not was_url:
-            raise HTTPException(status_code=500, detail="WAS URL not set")
-
-        try:
-            for release in releases:
-                tag_name = release["tag_name"]
-                assets = release["assets"]
-                for asset in assets:
-                    platform = asset["platform"]
-                    asset["was_url"] = get_release_url(was_url, tag_name, platform)
-                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{platform}.bin"):
-                        asset["cached"] = True
-                    else:
-                        asset["cached"] = False
-        except Exception as e:
-            log.error(e)
-            pass
-
-        return JSONResponse(content=releases)
-
+app.include_router(release.router)
 
 app.include_router(status.router)
 
