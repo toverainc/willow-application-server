@@ -984,7 +984,8 @@ async def websocket_endpoint(
                 if msg["cmd"] == "endpoint":
                     if app.command_endpoint is not None:
                         log.debug(f"Sending {msg['data']} to {app.command_endpoint.name}")
-                        resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
+                        data = {"hostname": client.hostname, "platform": client.platform, "mac_addr":client.mac_addr, **msg["data"]}
+                        resp = app.command_endpoint.send(jsondata=data, ws=websocket)
                         if resp is not None:
                             resp = app.command_endpoint.parse_response(resp)
                             log.debug(f"Got response {resp} from endpoint")
