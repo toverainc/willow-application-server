@@ -370,7 +370,7 @@ def test_url(url, error_msg, ws=False):
         return False
 
 
-def validate_config(config, skip_check = False):
+def validate_config(config, skip_check=False):
     ok = True
     if config['command_endpoint'] == 'Home Assistant':
         if not validate_string(config['hass_token'], "Invalid Home Assistant token", 1):
@@ -407,7 +407,7 @@ def validate_config(config, skip_check = False):
     return ok
 
 
-def validate_nvs(nvs, skip_check = False):
+def validate_nvs(nvs, skip_check=False):
     ok = True
     if not validate_url(nvs['WAS']['URL'], True):
         ok = False
