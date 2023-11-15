@@ -4,6 +4,7 @@ from fastapi import (
     WebSocket,
     WebSocketException,
 )
+from pydantic import BaseModel, ConfigDict
 from typing import Dict
 
 from .client import Client
@@ -12,9 +13,10 @@ from .client import Client
 log = logging.getLogger("WAS")
 
 
-class ConnMgr:
-    def __init__(self):
-        self.connected_clients: Dict[WebSocket, Client] = {}
+class ConnMgr(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    connected_clients: Dict[WebSocket, Client] = {}
 
     async def accept(self, ws: WebSocket, client: Client):
         try:
