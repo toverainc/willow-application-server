@@ -4,7 +4,7 @@ from fastapi import (
     WebSocket,
     WebSocketException,
 )
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, SerializerFunctionWrapHandler, field_serializer
 from typing import Dict
 
 from .client import Client
@@ -17,6 +17,14 @@ class ConnMgr(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     connected_clients: Dict[WebSocket, Client] = {}
+
+    @field_serializer('connected_clients', mode='wrap')
+    def serialize_connected_clients(self, value: Dict[WebSocket, Client], nxt: SerializerFunctionWrapHandler, info: FieldSerializationInfo) -> Dict[str, Client]:
+        serialized_dict = {}
+        for ws, client in value.items():
+            remote = f"{ws.client.host}:{ws.client.port}"
+            serialized_dict[remote] = client
+        return nxt(serialized_dict)
 
     async def accept(self, ws: WebSocket, client: Client):
         try:
