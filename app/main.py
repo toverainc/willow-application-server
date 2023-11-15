@@ -152,7 +152,7 @@ app.include_router(status.router)
 async def websocket_endpoint(
         websocket: WebSocket,
         user_agent: Annotated[str | None, Header(convert_underscores=True)] = None):
-    client = Client(user_agent)
+    client = Client(ua=user_agent)
 
     await app.connmgr.accept(websocket, client)
     try:

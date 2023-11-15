@@ -1,10 +1,12 @@
-class Client:
-    def __init__(self, ua):
-        self.hostname = "unknown"
-        self.platform = "unknown"
-        self.mac_addr = "unknown"
-        self.ua = ua
-        self.notification_active = 0
+from pydantic import BaseModel
+
+
+class Client(BaseModel):
+    hostname: str = "unknown"
+    platform: str = "unknown"
+    mac_addr: str = "unknown"
+    notification_active: int = 0
+    ua: str = None
 
     def set_hostname(self, hostname):
         self.hostname = hostname
