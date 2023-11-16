@@ -55,6 +55,22 @@ def construct_url(host, port, tls=False, ws=False):
     return f"{scheme}://{host}:{port}"
 
 
+def construct_wis_tts_url(url):
+    parsed = urllib.parse.urlparse(url)
+    if len(parsed.query) == 0:
+        return urllib.parse.urljoin(url, "?text=")
+    else:
+        params = urllib.parse.parse_qs(parsed.query)
+        log.debug(f"construct_wis_tts_url: parsed={parsed} - params={params}")
+        if "text" in params:
+            log.warning("removing text parameter from WIS TTS URL")
+            del params["text"]
+        params["text"] = ""
+        parsed = parsed._replace(query=urllib.parse.urlencode(params, doseq=True))
+        log.debug(f"construct_wis_tts_url: parsed={parsed} - params={params}")
+        return urllib.parse.urlunparse(parsed)
+
+
 async def device_command(connmgr, data, command):
     if 'hostname' in data:
         hostname = data["hostname"]
@@ -305,6 +321,11 @@ async def post_config(request, apply=False):
             log.error(f"Failed to apply config to {hostname} ({e})")
             return "Error"
     else:
+        if "wis_tts_url" in data:
+            data["wis_tts_url_v2"] = construct_wis_tts_url(data["wis_tts_url"])
+            del data["wis_tts_url"]
+            log.debug(f"wis_tts_url_v2: {data['wis_tts_url_v2']}")
+
         data = json.dumps(data)
         save_json_to_file(STORAGE_USER_CONFIG, data)
         msg = build_msg(data, "config")
