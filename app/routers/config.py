@@ -1,4 +1,5 @@
 from logging import getLogger
+from re import sub
 from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -53,6 +54,9 @@ async def api_get_config(config: GetConfig = Depends()):
         return JSONResponse(content=nvs)
     elif config.type == "config":
         config = get_config()
+        if "wis_tts_url_v2" in config:
+            config["wis_tts_url"] = sub("[&?]text=", "", config["wis_tts_url_v2"])
+            del config["wis_tts_url_v2"]
         return JSONResponse(content=config)
     elif config.type == "ha_token":
         config = get_config()
