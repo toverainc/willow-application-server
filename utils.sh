@@ -142,6 +142,11 @@ shell|docker)
     shell
 ;;
 
+test)
+    dep_check
+    docker run --rm -it --volume="${WAS_DIR}:/app" "$IMAGE":"$TAG" pytest
+;;
+
 torture)
     echo "Starting WAS device torture test"
     docker compose down
