@@ -810,3 +810,5 @@ async def websocket_endpoint(
         connmgr.disconnect(websocket)
     except ConnectionClosed:
         connmgr.disconnect(websocket)
+    except Exception as e:
+        log.error(f"unhandled exception in WebSocket route: {e}")
