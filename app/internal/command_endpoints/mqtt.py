@@ -89,7 +89,7 @@ class MqttEndpoint(CommandEndpoint):
         client.subscribe(self.config.topic)
 
     def cb_msg(self, client, userdata, msg):
-        self.log.info(f"cb_msg: topic={msg.topic} payload={msg.payloud}")
+        self.log.info(f"cb_msg: topic={msg.topic} payload={msg.payload}")
 
     def parse_response(self, response):
         res = CommandEndpointResult()
