@@ -21,7 +21,11 @@ from app.const import (
     STORAGE_USER_CONFIG,
 )
 
-from app.internal.command_endpoints import CommandEndpointResponse, CommandEndpointResult
+from app.internal.command_endpoints import (
+    CommandEndpointResponse,
+    CommandEndpointResult,
+    CommandEndpointRuntimeException
+)
 from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
@@ -174,13 +178,20 @@ async def websocket_endpoint(
                 if msg["cmd"] == "endpoint":
                     if app.command_endpoint is not None:
                         log.debug(f"Sending {msg['data']} to {app.command_endpoint.name}")
-                        resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
-                        if resp is not None:
-                            resp = app.command_endpoint.parse_response(resp)
-                            log.debug(f"Got response {resp} from endpoint")
-                            # HomeAssistantWebSocketEndpoint sends message via callback
+                        try:
+                            resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
                             if resp is not None:
-                                asyncio.ensure_future(websocket.send_text(resp))
+                                resp = app.command_endpoint.parse_response(resp)
+                                log.debug(f"Got response {resp} from endpoint")
+                                # HomeAssistantWebSocketEndpoint sends message via callback
+                                if resp is not None:
+                                    asyncio.ensure_future(websocket.send_text(resp))
+                        except CommandEndpointRuntimeException as e:
+                            command_endpoint_result = CommandEndpointResult(speech="WAS Command Endpoint unreachable")
+                            command_endpoint_response = CommandEndpointResponse(result=command_endpoint_result)
+                            asyncio.ensure_future(websocket.send_text(command_endpoint_response.model_dump_json()))
+                            log.error(f"WAS Command Endpoint unreachable: {e}")
+
                     else:
                         command_endpoint_result = CommandEndpointResult(speech="WAS Command Endpoint not active")
                         command_endpoint_response = CommandEndpointResponse(result=command_endpoint_result)
