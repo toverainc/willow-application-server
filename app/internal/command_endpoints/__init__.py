@@ -1,5 +1,6 @@
 import logging
 
+from pydantic import BaseModel
 
 class CommandEndpointConfigException(Exception):
     """Raised when an the command endpoint configuration is invalid
@@ -25,13 +26,9 @@ class CommandEndpointRuntimeException(Exception):
         super().__init__(self.msg)
 
 
-class CommandEndpointResult():
+class CommandEndpointResult(BaseModel):
     ok: bool = False
-    speech: str = ""
-
-    def __init__(self):
-        self.ok = False
-        self.speech = "Error!"
+    speech: str = "Error!"
 
 
 class CommandEndpoint():
