@@ -94,7 +94,7 @@ class MqttEndpoint(CommandEndpoint):
             else:
                 res.speech = "Success!"
 
-        return json.dumps({"result": res.__dict__})
+        return json.dumps({"result": res.model_dump()})
 
     def send(self, data=None, jsondata=None, ws=None):
         try:

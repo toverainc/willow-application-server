@@ -33,7 +33,7 @@ class HomeAssistantRestEndpoint(RestEndpoint):
             res.ok = True
             res.speech = self.get_speech(response.json())
 
-        return json.dumps({'result': res.__dict__})
+        return json.dumps({'result': res.model_dump()})
 
     def send(self, data=None, jsondata=None, ws=None):
         out = {'text': jsondata["text"], 'language': jsondata["language"]}
