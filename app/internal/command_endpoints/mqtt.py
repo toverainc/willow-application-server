@@ -2,7 +2,13 @@ import asyncio
 import json
 import logging
 import paho.mqtt.client as mqtt
-from . import CommandEndpoint, CommandEndpointConfigException, CommandEndpointResult, CommandEndpointRuntimeException
+from . import (
+    CommandEndpoint,
+    CommandEndpointConfigException,
+    CommandEndpointResponse,
+    CommandEndpointResult,
+    CommandEndpointRuntimeException
+)
 from enum import Enum
 
 
@@ -94,7 +100,8 @@ class MqttEndpoint(CommandEndpoint):
             else:
                 res.speech = "Success!"
 
-        return json.dumps({"result": res.model_dump()})
+        command_endpoint_response = CommandEndpointResponse(result=res)
+        return command_endpoint_response.model_dump_json()
 
     def send(self, data=None, jsondata=None, ws=None):
         try:

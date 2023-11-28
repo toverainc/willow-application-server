@@ -3,6 +3,7 @@ import logging
 from . import (
     CommandEndpoint,
     CommandEndpointConfigException,
+    CommandEndpointResponse,
     CommandEndpointResult,
     CommandEndpointRuntimeException
 )
@@ -64,7 +65,8 @@ class RestEndpoint(CommandEndpoint):
             else:
                 res.speech = "Success!"
 
-        return json.dumps({'result': res.model_dump()})
+        command_endpoint_response = CommandEndpointResponse(result=res)
+        return command_endpoint_response.model_dump_json()
 
     def send(self, data=None, jsondata=None, ws=None):
         try:

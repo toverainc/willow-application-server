@@ -5,6 +5,7 @@ import time
 import websockets
 from . import (
     CommandEndpoint,
+    CommandEndpointResponse,
     CommandEndpointResult,
     CommandEndpointRuntimeException,
 )
@@ -81,8 +82,9 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
                     if response_type == "action_done":
                         out.ok = True
                     out.speech = msg["event"]["data"]["intent_output"]["response"]["speech"]["plain"]["speech"]
-                    self.log.debug(f"sending {out} to {ws}")
-                    asyncio.ensure_future(ws.send_text(json.dumps({'result': out.model_dump()})))
+                    command_endpoint_response = CommandEndpointResponse(result=out)
+                    self.log.debug(f"sending {command_endpoint_response} to {ws}")
+                    asyncio.ensure_future(ws.send_text(command_endpoint_response.model_dump_json()))
                     self.connmap.pop(id)
             elif msg["type"] == "auth_required":
                 auth_msg = {

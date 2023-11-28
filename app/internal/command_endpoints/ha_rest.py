@@ -1,5 +1,5 @@
 import json
-from . import CommandEndpointResult
+from . import CommandEndpointResponse, CommandEndpointResult
 from .rest import RestAuthType, RestConfig, RestEndpoint
 
 
@@ -33,7 +33,8 @@ class HomeAssistantRestEndpoint(RestEndpoint):
             res.ok = True
             res.speech = self.get_speech(response.json())
 
-        return json.dumps({'result': res.model_dump()})
+        command_endpoint_response = CommandEndpointResponse(result=res)
+        return command_endpoint_response.model_dump_json()
 
     def send(self, data=None, jsondata=None, ws=None):
         out = {'text': jsondata["text"], 'language': jsondata["language"]}
