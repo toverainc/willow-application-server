@@ -81,8 +81,8 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
                     if response_type == "action_done":
                         out.ok = True
                     out.speech = msg["event"]["data"]["intent_output"]["response"]["speech"]["plain"]["speech"]
-                    self.log.debug(f"sending {out.__dict__} to {ws}")
-                    asyncio.ensure_future(ws.send_text(json.dumps({'result': out.__dict__})))
+                    self.log.debug(f"sending {out} to {ws}")
+                    asyncio.ensure_future(ws.send_text(json.dumps({'result': out.model_dump()})))
                     self.connmap.pop(id)
             elif msg["type"] == "auth_required":
                 auth_msg = {
