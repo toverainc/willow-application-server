@@ -31,6 +31,10 @@ class CommandEndpointResult(BaseModel):
     speech: str = "Error!"
 
 
+class CommandEndpointResponse(BaseModel):
+    result: CommandEndpointResult = None
+
+
 class CommandEndpoint():
     name = "WAS CommandEndpoint"
     log = logging.getLogger("WAS")
