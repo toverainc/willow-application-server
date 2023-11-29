@@ -64,6 +64,7 @@ class MqttEndpoint(CommandEndpoint):
     def __init__(self, config):
         self.config = config
         self.config.validate()
+        self.connected = False
         self.mqtt_client = None
 
         loop = asyncio.get_event_loop()
@@ -73,6 +74,7 @@ class MqttEndpoint(CommandEndpoint):
         try:
             self.mqtt_client = mqtt.Client()
             self.mqtt_client.on_connect = self.cb_connect
+            self.mqtt_client.on_disconnect = self.cb_disconnect
             self.mqtt_client.on_msg = self.cb_msg
             if self.config.username is not None and self.config.password is not None:
                 self.mqtt_client.username_pw_set(self.config.username, self.config.password)
@@ -85,8 +87,13 @@ class MqttEndpoint(CommandEndpoint):
             await asyncio.sleep(1)
 
     def cb_connect(self, client, userdata, flags, rc):
+        self.connected = True
         self.log.info("MQTT connected")
         client.subscribe(self.config.topic)
+
+    def cb_disconnect(client, userdata, rc):
+        self.connected = False
+        self.log.info("MQTT disconnected")
 
     def cb_msg(self, client, userdata, msg):
         self.log.info(f"cb_msg: topic={msg.topic} payload={msg.payload}")
@@ -104,6 +111,8 @@ class MqttEndpoint(CommandEndpoint):
         return command_endpoint_response.model_dump_json()
 
     def send(self, data=None, jsondata=None, ws=None):
+        if not self.connected:
+            raise CommandEndpointRuntimeException(f"{self.name} not connected")
         try:
             if jsondata is not None:
                 self.mqtt_client.publish(self.config.topic, payload=json.dumps(jsondata))
