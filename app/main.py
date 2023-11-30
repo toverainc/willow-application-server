@@ -7,6 +7,7 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
+from contextlib import asynccontextmanager
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import logging
@@ -59,10 +60,30 @@ except Exception:
 
 settings = get_settings()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    migrate_user_files()
+    get_tz_config(refresh=True)
+
+    app.connmgr = ConnMgr()
+
+    try:
+        init_command_endpoint(app)
+    except Exception as e:
+        app.command_endpoint = None
+        log.error(f"failed to initialize command endpoint ({e})")
+
+    app.notify_queue = NotifyQueue(connmgr=app.connmgr)
+    app.notify_queue.start()
+
+    yield
+    log.info("shutting down")
+
 app = FastAPI(title="Willow Application Server",
               description="Willow Management API",
               openapi_url="/openapi.json",
               docs_url="/docs",
+              lifespan=lifespan,
               redoc_url="/redoc",
               version=settings.was_version)
 
@@ -108,23 +129,6 @@ def get_config_ws():
     finally:
         config_file.close()
         return config
-
-
-@app.on_event("startup")
-async def startup_event():
-    migrate_user_files()
-    get_tz_config(refresh=True)
-
-    app.connmgr = ConnMgr()
-
-    try:
-        init_command_endpoint(app)
-    except Exception as e:
-        app.command_endpoint = None
-        log.error(f"failed to initialize command endpoint ({e})")
-
-    app.notify_queue = NotifyQueue(connmgr=app.connmgr)
-    app.notify_queue.start()
 
 
 @app.get("/", response_class=RedirectResponse)
