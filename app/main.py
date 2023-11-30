@@ -51,6 +51,12 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
+log = logging.getLogger("WAS")
+try:
+    log.setLevel(os.environ.get("WAS_LOG_LEVEL").upper())
+except Exception:
+    pass
+
 settings = get_settings()
 
 app = FastAPI(title="Willow Application Server",
@@ -59,12 +65,6 @@ app = FastAPI(title="Willow Application Server",
               docs_url="/docs",
               redoc_url="/redoc",
               version=settings.was_version)
-
-log = logging.getLogger("WAS")
-try:
-    log.setLevel(os.environ.get("WAS_LOG_LEVEL").upper())
-except Exception:
-    pass
 
 wake_session = None
 
