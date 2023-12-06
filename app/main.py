@@ -22,7 +22,7 @@ from app.const import (
     STORAGE_USER_CONFIG,
 )
 
-from app.db.main import create_db_and_tables, migrate_user_config
+from app.db.main import create_db_and_tables, get_config_db, migrate_user_config
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -125,18 +125,6 @@ Path(DIR_OTA).mkdir(parents=True, exist_ok=True)
 app.mount("/admin", StaticFiles(directory="static/admin", html=True), name="admin")
 
 
-def get_config_ws():
-    config = None
-    try:
-        with open(STORAGE_USER_CONFIG, "r") as config_file:
-            config = config_file.read()
-    except Exception as e:
-        log.error(f"Failed to get config: {e}")
-    finally:
-        config_file.close()
-        return config
-
-
 @app.get("/", response_class=RedirectResponse)
 def api_redirect_admin():
     log.debug('API GET ROOT: Request')
@@ -214,7 +202,7 @@ async def websocket_endpoint(
                         log.error("WAS Command Endpoint not active")
 
                 elif msg["cmd"] == "get_config":
-                    asyncio.ensure_future(websocket.send_text(build_msg(get_config_ws(), "config")))
+                    asyncio.ensure_future(websocket.send_text(build_msg(json.dumps(get_config_db()), "config")))
 
             elif "goodbye" in msg:
                 app.connmgr.disconnect(websocket)
