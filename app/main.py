@@ -1,6 +1,9 @@
 import asyncio
 import json
 import os
+
+import alembic
+import alembic.config
 from fastapi import (
     FastAPI,
     Header,
@@ -18,13 +21,14 @@ from websockets.exceptions import ConnectionClosed
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.const import (
+    ALEMBIC_CONFIG,
     DIR_OTA,
     STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
     STORAGE_USER_NVS,
 )
 
-from app.db.main import create_db_and_tables, get_config_db, migrate_user_client_config, migrate_user_config, migrate_user_nvs
+from app.db.main import get_config_db, migrate_user_client_config, migrate_user_config, migrate_user_nvs
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -66,9 +70,16 @@ except Exception:
 
 settings = get_settings()
 
+def db_migrations():
+    cfg = alembic.config.Config(ALEMBIC_CONFIG)
+    cfg.attributes['logger'] = log
+    alembic.command.upgrade(cfg, "head")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    # database schema migrations
+    db_migrations()
 
     migrate_user_files()
     get_tz_config(refresh=True)
