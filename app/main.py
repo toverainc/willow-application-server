@@ -22,6 +22,7 @@ from app.const import (
     STORAGE_USER_CONFIG,
 )
 
+from app.db.main import create_db_and_tables
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -62,6 +63,8 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    create_db_and_tables()
+
     migrate_user_files()
     get_tz_config(refresh=True)
 
