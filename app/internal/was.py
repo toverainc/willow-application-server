@@ -15,6 +15,8 @@ from logging import getLogger
 from num2words import num2words
 from websockets.sync.client import connect
 
+from app.db.main import get_config_db, save_config_to_db
+
 from ..const import (
     DIR_OTA,
     STORAGE_TZ,
@@ -316,7 +318,7 @@ async def post_config(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
         hostname = data["hostname"]
-        data = get_config()
+        data = get_config_db()
         msg = build_msg(json.dumps(data), "config")
         try:
             ws = request.app.connmgr.get_client_by_hostname(hostname)
@@ -331,8 +333,8 @@ async def post_config(request, apply=False):
             del data["wis_tts_url"]
             log.debug(f"wis_tts_url_v2: {data['wis_tts_url_v2']}")
 
+        save_config_to_db(data)
         data = json.dumps(data)
-        save_json_to_file(STORAGE_USER_CONFIG, data)
         msg = build_msg(data, "config")
         log.debug(str(msg))
         if apply:

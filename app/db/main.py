@@ -54,3 +54,48 @@ def migrate_user_config(config):
             # TODO avoid users thinking something is wrong here
             log.warning(e)
             session.rollback()
+
+
+def save_config_to_db(config):
+    config = WillowConfig.parse_obj(config)
+    log.debug(f"save_config_to_db: {config}")
+
+    with Session(engine) as session:
+        for name, value in iter(config):
+            stmt = select(WillowConfigTable).where(
+                WillowConfigTable.config_type == WillowConfigType.config,
+                WillowConfigTable.config_name == name,
+            )
+            record = session.exec(stmt).first()
+
+            if record is None:
+                record = WillowConfigTable(
+                    config_type=WillowConfigType.config,
+                    config_name=name,
+                )
+                # we need to cast to str here as we're saving different types (bool, int, str)
+                # casting None to str would save "None" in the db
+                if value is None:
+                    record.config_value = None
+                else:
+                    record.config_value = str(value)
+
+            else:
+                if record.config_value == str(value):
+                    continue
+
+                # we need to cast to str here as we're saving different types (bool, int, str)
+                # casting None to str would save "None" in the db
+                if value is None:
+                    record.config_value = None
+                else:
+                    record.config_value = str(value)
+
+            session.add(record)
+
+        try:
+            session.commit()
+            session.refresh(record)
+        except IntegrityError as e:
+            log.warning(e)
+            session.rollback()
