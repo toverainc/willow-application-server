@@ -1,3 +1,4 @@
+alembic==1.15.2
 annotated-types==0.7.0
 anyio==3.7.1
 certifi==2024.7.4
