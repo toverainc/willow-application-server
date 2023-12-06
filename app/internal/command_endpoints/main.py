@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from app.db.main import get_config_db
 from app.internal.command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from app.internal.command_endpoints.ha_ws import (
     HomeAssistantWebSocketEndpoint,
@@ -8,7 +9,6 @@ from app.internal.command_endpoints.ha_ws import (
 from app.internal.command_endpoints.mqtt import MqttConfig, MqttEndpoint
 from app.internal.command_endpoints.openhab import OpenhabEndpoint
 from app.internal.command_endpoints.rest import RestEndpoint
-from app.internal.was import get_config
 
 
 log = getLogger("WAS")
@@ -21,7 +21,7 @@ def init_command_endpoint(app):
     except Exception:
         pass
 
-    user_config = get_config()
+    user_config = get_config_db()
 
     if "was_mode" in user_config and user_config["was_mode"]:
         log.info("WAS Endpoint mode enabled")
@@ -59,7 +59,9 @@ def init_command_endpoint(app):
 
         elif user_config["command_endpoint"] == "REST":
             app.command_endpoint = RestEndpoint(user_config["rest_url"])
-            app.command_endpoint.config.set_auth_type(user_config["rest_auth_type"])
+
+            if hasattr(user_config, "rest_auth_type"):
+                app.command_endpoint.config.set_auth_type(user_config["rest_auth_type"])
 
             if "rest_auth_header" in user_config:
                 app.command_endpoint.config.set_auth_header(user_config["rest_auth_header"])

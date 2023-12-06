@@ -16,6 +16,9 @@ class WillowConfigType(str, Enum):
 
 
 class WillowConfigTable(SQLModel, table=True):
+    # work around probably SQLModel bug during select
+    # AttributeError: 'ConfigTable' object has no attribute '__pydantic_extra__'. Did you mean: '__pydantic_private__'?
+    __pydantic_extra__ = None
     __table_args__ = (UniqueConstraint("config_type", "config_name"), )
     __tablename__ = "willow_config"
 
