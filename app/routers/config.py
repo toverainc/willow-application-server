@@ -7,11 +7,12 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from requests import get
 
+from app.db.main import get_config_db
+
 from ..const import URL_WILLOW_CONFIG
 from ..internal.command_endpoints.main import init_command_endpoint
 from ..internal.was import (
     construct_url,
-    get_config,
     get_multinet,
     get_nvs,
     get_tz_config,
@@ -53,16 +54,16 @@ async def api_get_config(config: GetConfig = Depends()):
         nvs = get_nvs()
         return JSONResponse(content=nvs)
     elif config.type == "config":
-        config = get_config()
+        config = get_config_db()
         if "wis_tts_url_v2" in config:
             config["wis_tts_url"] = sub("[&?]text=", "", config["wis_tts_url_v2"])
             del config["wis_tts_url_v2"]
         return JSONResponse(content=config)
     elif config.type == "ha_token":
-        config = get_config()
+        config = get_config_db()
         return PlainTextResponse(config["hass_token"])
     elif config.type == "ha_url":
-        config = get_config()
+        config = get_config_db()
         url = construct_url(config["hass_host"], config["hass_port"], config["hass_tls"])
         return PlainTextResponse(url)
     elif config.type == "multinet":
