@@ -69,7 +69,14 @@ async def lifespan(app: FastAPI):
     migrate_user_files()
     get_tz_config(refresh=True)
 
-    migrate_user_config(get_config())
+    user_config = get_config()
+    # skip migration if user_config is empty
+    if user_config:
+        try:
+            migrate_user_config(user_config)
+            os.remove(STORAGE_USER_CONFIG)
+        except Exception as e:
+            log.error(f"failed to migrate user config to database: {e}")
 
     app.connmgr = ConnMgr()
 
