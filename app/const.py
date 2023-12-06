@@ -1,3 +1,4 @@
+ALEMBIC_CONFIG = '/app/alembic.ini'
 DB_URL = 'sqlite:////app/storage/was.db'
 DIR_ASSET = '/app/storage/asset'
 DIR_OTA = '/app/storage/ota'

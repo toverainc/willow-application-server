@@ -15,7 +15,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-if config.config_file_name is not None:
+# We must skip this when config has a logger attribute to prevent the WAS logger config from being overwritten
+if config.config_file_name is not None and config.attributes.get('logger', None) is None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
