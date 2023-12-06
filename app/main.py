@@ -22,7 +22,7 @@ from app.const import (
     STORAGE_USER_CONFIG,
 )
 
-from app.db.main import create_db_and_tables
+from app.db.main import create_db_and_tables, migrate_user_config
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -31,6 +31,7 @@ from app.internal.command_endpoints import (
 from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
+    get_config,
     get_tz_config,
 )
 from app.settings import get_settings
@@ -67,6 +68,8 @@ async def lifespan(app: FastAPI):
 
     migrate_user_files()
     get_tz_config(refresh=True)
+
+    migrate_user_config(get_config())
 
     app.connmgr = ConnMgr()
 
