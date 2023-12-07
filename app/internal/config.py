@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -63,33 +64,33 @@ class WillowConfig(BaseModel, validate_assignment=True):
     bss: bool = None
     command_endpoint: WillowCommandEndpoint = None
     display_timeout: int = None
-    hass_host: str = None
-    hass_port: int = None
-    hass_tls: bool = None
-    hass_token: str = None
+    hass_host: Optional[str] = None
+    hass_port: Optional[int] = None
+    hass_tls: Optional[bool] = None
+    hass_token: Optional[str] = None
     lcd_brightness: int = None
     mic_gain: int = None
-    mqtt_auth_type: WillowMqttAuthType = None
-    mqtt_host: str = None
-    mqtt_password: str = None
-    mqtt_port: int = None
-    mqtt_tls: bool = None
-    mqtt_topic: str = None
-    mqtt_username: str = None
+    mqtt_auth_type: Optional[WillowMqttAuthType] = None
+    mqtt_host: Optional[str] = None
+    mqtt_password: Optional[str] = None
+    mqtt_port: Optional[int] = None
+    mqtt_tls: Optional[bool] = None
+    mqtt_topic: Optional[str] = None
+    mqtt_username: Optional[str] = None
     multiwake: bool = None
     ntp_config: WillowNtpConfig = None
-    ntp_host: str = None
-    openhab_token: str = None
-    openhab_url: str = None
+    ntp_host: Optional[str] = None
+    openhab_token: Optional[str] = None
+    openhab_url: Optional[str] = None
     record_buffer: int = None
-    rest_auth_header: str = None
-    rest_auth_pass: str = None
-    rest_auth_type: WillowRestAuthType = None
-    rest_auth_user: str = None
-    rest_url: str = None
+    rest_auth_header: Optional[str] = None
+    rest_auth_pass: Optional[str] = None
+    rest_auth_type: Optional[WillowRestAuthType] = None
+    rest_auth_user: Optional[str] = None
+    rest_url: Optional[str] = None
     show_prereleases: bool = None
     speaker_volume: int = None
-    speech_rec_mode: WillowSpeechRecMode = None
+    speech_rec_mode: Optional[WillowSpeechRecMode] = None
     stream_timeout: int = None
     timezone: str = None
     timezone_name: str = None
@@ -99,10 +100,24 @@ class WillowConfig(BaseModel, validate_assignment=True):
     wake_mode: WillowWakeMode = None
     wake_word: WillowWakeWord = None
     was_mode: bool = None
-    wis_tts_url: str = None
-    wis_tts_url_v2: str = None
+    wis_tts_url: Optional[str] = None
+    wis_tts_url_v2: Optional[str] = None
     wis_url: str = None
 
     # use Enum strings instead of e.g. WillowAudioCodec.PCM
     class Config:
         use_enum_values = True
+
+
+class WillowNvsWas(BaseModel):
+    URL: str = None
+
+
+class WillowNvsWifi(BaseModel):
+    PSK: str = None
+    SSID: str = None
+
+
+class WillowNvsConfig(BaseModel):
+    WAS: WillowNvsWas = None
+    WIFI: WillowNvsWifi = None
