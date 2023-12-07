@@ -27,3 +27,11 @@ class WillowConfigTable(SQLModel, table=True):
     config_name: str
     config_namespace: Optional[WillowConfigNamespaceType] = None
     config_value: Optional[str] = None
+
+
+class WillowClientTable(SQLModel, table=True):
+    __tablename__ = "willow_clients"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    mac_addr: str = Field(unique=True)
+    label: str
