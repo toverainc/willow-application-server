@@ -15,7 +15,7 @@ from logging import getLogger
 from num2words import num2words
 from websockets.sync.client import connect
 
-from app.db.main import get_config_db, save_config_to_db
+from app.db.main import get_config_db, get_nvs_db, save_config_to_db
 
 from ..const import (
     DIR_OTA,
@@ -289,7 +289,7 @@ def get_was_config():
 
 def get_was_url():
     try:
-        nvs = get_nvs()
+        nvs = get_nvs_db()
         return nvs["WAS"]["URL"]
     except Exception:
         return False

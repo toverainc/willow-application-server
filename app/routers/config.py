@@ -7,14 +7,13 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 from requests import get
 
-from app.db.main import get_config_db
+from app.db.main import get_config_db, get_nvs_db
 
 from ..const import URL_WILLOW_CONFIG
 from ..internal.command_endpoints.main import init_command_endpoint
 from ..internal.was import (
     construct_url,
     get_multinet,
-    get_nvs,
     get_tz_config,
     get_was_config,
     post_config,
@@ -51,7 +50,7 @@ async def api_get_config(config: GetConfig = Depends()):
             raise HTTPException(status_code=400, detail="Invalid default config")
 
     if config.type == "nvs":
-        nvs = get_nvs()
+        nvs = get_nvs_db()
         return JSONResponse(content=nvs)
     elif config.type == "config":
         config = get_config_db()
