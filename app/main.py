@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.const import (
     DIR_OTA,
+    STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
     STORAGE_USER_NVS,
 )
@@ -90,8 +91,14 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             log.error(f"failed to migrate user nvs to database: {e}")
 
-    migrate_user_client_config(get_devices())
-
+    devices = get_devices()
+    # skip migration if devices is empty
+    if devices:
+        try:
+            migrate_user_client_config(devices)
+            os.remove(STORAGE_USER_CLIENT_CONFIG)
+        except Exception as e:
+            log.error(f"failed to migrate user client config to database: {e}")
     app.connmgr = ConnMgr()
 
     try:
