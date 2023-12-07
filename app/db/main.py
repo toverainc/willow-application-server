@@ -34,6 +34,18 @@ def get_config_db():
     return config.model_dump(exclude_none=True)
 
 
+def get_devices_db():
+    devices = []
+    with Session(engine) as session:
+        stmt = select(WillowClientTable)
+        records = session.exec(stmt)
+
+        for record in records:
+            devices.append(record.model_dump())
+
+    return devices
+
+
 def get_nvs_db():
     config = WillowNvsConfig()
     config_was = WillowNvsWas()
