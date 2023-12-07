@@ -23,7 +23,7 @@ from app.const import (
     STORAGE_USER_NVS,
 )
 
-from app.db.main import create_db_and_tables, get_config_db, migrate_user_config, migrate_user_nvs
+from app.db.main import create_db_and_tables, get_config_db, migrate_user_client_config, migrate_user_config, migrate_user_nvs
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -33,6 +33,7 @@ from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
     get_config,
+    get_devices,
     get_nvs,
     get_tz_config,
 )
@@ -88,6 +89,8 @@ async def lifespan(app: FastAPI):
             os.remove(STORAGE_USER_NVS)
         except Exception as e:
             log.error(f"failed to migrate user nvs to database: {e}")
+
+    migrate_user_client_config(get_devices())
 
     app.connmgr = ConnMgr()
 
