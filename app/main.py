@@ -22,7 +22,7 @@ from app.const import (
     STORAGE_USER_CONFIG,
 )
 
-from app.db.main import create_db_and_tables, get_config_db, migrate_user_config
+from app.db.main import create_db_and_tables, get_config_db, migrate_user_config, migrate_user_nvs
 from app.internal.command_endpoints import (
     CommandEndpointResponse,
     CommandEndpointResult,
@@ -32,6 +32,7 @@ from app.internal.command_endpoints.main import init_command_endpoint
 from app.internal.was import (
     build_msg,
     get_config,
+    get_nvs,
     get_tz_config,
 )
 from app.settings import get_settings
@@ -77,6 +78,8 @@ async def lifespan(app: FastAPI):
             os.remove(STORAGE_USER_CONFIG)
         except Exception as e:
             log.error(f"failed to migrate user config to database: {e}")
+
+    migrate_user_nvs(get_nvs())
 
     app.connmgr = ConnMgr()
 
