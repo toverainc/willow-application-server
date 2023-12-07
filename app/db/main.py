@@ -3,15 +3,20 @@ from logging import getLogger
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, create_engine, select
 
-from app.const import DB_URL
 from app.db.models import WillowClientTable, WillowConfigNamespaceType, WillowConfigTable, WillowConfigType
 from app.internal.config import WillowConfig, WillowNvsConfig, WillowNvsWas, WillowNvsWifi
+from app.settings import get_settings
 
 
 log = getLogger("WAS")
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(DB_URL, echo=True, connect_args=connect_args)
+settings = get_settings()
+
+connect_args = {}
+if settings.db_url.find("sqlite://") != -1:
+    connect_args["check_same_thread"] = False
+
+engine = create_engine(settings.db_url, echo=True, connect_args=connect_args)
 
 
 def get_config_db():
