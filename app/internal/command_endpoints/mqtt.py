@@ -91,7 +91,7 @@ class MqttEndpoint(CommandEndpoint):
         self.log.info("MQTT connected")
         client.subscribe(self.config.topic)
 
-    def cb_disconnect(client, userdata, rc):
+    def cb_disconnect(self, client, userdata, rc):
         self.connected = False
         self.log.info("MQTT disconnected")
 
