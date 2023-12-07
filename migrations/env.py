@@ -1,5 +1,6 @@
 from logging.config import fileConfig
 
+from decouple import config as deconfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
@@ -14,7 +15,9 @@ from app.db.models import WillowConfigTable
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', DB_URL)
+db_url = deconfig('DB_URL', DB_URL)
+
+config.set_main_option('sqlalchemy.url', db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

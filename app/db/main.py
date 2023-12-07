@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from decouple import config as deconfig
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, create_engine, select
 
@@ -10,8 +11,12 @@ from app.internal.config import WillowConfig, WillowNvsConfig, WillowNvsWas, Wil
 
 log = getLogger("WAS")
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(DB_URL, echo=True, connect_args=connect_args)
+connect_args = {}
+db_url = deconfig('DB_URL', DB_URL)
+if db_url.find("sqlite://") != -1:
+    connect_args["check_same_thread"] = False
+
+engine = create_engine(db_url, echo=True, connect_args=connect_args)
 
 
 def get_config_db():
