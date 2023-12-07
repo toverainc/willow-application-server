@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.db.main import get_devices_db
+
 from ..const import STORAGE_USER_CLIENT_CONFIG
 from ..internal.was import device_command, get_devices, warm_tts
 
@@ -20,7 +22,7 @@ router = APIRouter(
 @router.get("/client")
 async def api_get_client(request: Request):
     log.debug('API GET CLIENT: Request')
-    devices = get_devices()
+    devices = get_devices_db()
     clients = []
     macs = []
     labels = {}

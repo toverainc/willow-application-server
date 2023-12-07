@@ -30,6 +30,9 @@ class WillowConfigTable(SQLModel, table=True):
 
 
 class WillowClientTable(SQLModel, table=True):
+    # work around probably SQLModel bug during select
+    # AttributeError: 'ConfigTable' object has no attribute '__pydantic_extra__'. Did you mean: '__pydantic_private__'?
+    __pydantic_extra__ = None
     __tablename__ = "willow_clients"
 
     id: Optional[int] = Field(default=None, primary_key=True)
