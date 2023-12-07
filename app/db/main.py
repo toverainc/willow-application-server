@@ -146,6 +146,35 @@ def migrate_user_nvs(config):
             session.rollback()
 
 
+def save_client_config_to_db(clients):
+    log.debug(f"save_client_config_to_db: {clients}")
+
+    with Session(engine) as session:
+        for client in iter(clients):
+            stmt = select(WillowClientTable).where(WillowClientTable.mac_addr == client["mac_addr"])
+            record = session.exec(stmt).first()
+
+            if record is None:
+                record = WillowClientTable(
+                    label=client["label"],
+                    mac_addr=client["mac_addr"]
+                )
+
+            else:
+                if record.label == client["label"] and record.mac_addr == client["mac_addr"]:
+                    continue
+                record.label = client["label"]
+                record.mac_addr = client["mac_addr"]
+
+            session.add(record)
+
+        try:
+            session.commit()
+        except IntegrityError as e:
+            log.warning(e)
+            session.rollback()
+
+
 def save_config_to_db(config):
     config = WillowConfig.parse_obj(config)
     log.debug(f"save_config_to_db: {config}")
