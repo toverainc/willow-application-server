@@ -15,7 +15,7 @@ from logging import getLogger
 from num2words import num2words
 from websockets.sync.client import connect
 
-from app.db.main import get_config_db, get_nvs_db, save_config_to_db
+from app.db.main import get_config_db, get_nvs_db, save_config_to_db, save_nvs_to_db
 
 from ..const import (
     DIR_OTA,
@@ -346,7 +346,7 @@ async def post_nvs(request, apply=False):
     data = await request.json()
     if 'hostname' in data:
         hostname = data["hostname"]
-        data = get_nvs()
+        data = get_nvs_db()
         msg = build_msg(json.dumps(data), "nvs")
         try:
             ws = request.app.connmgr.get_client_by_hostname(hostname)
@@ -356,8 +356,8 @@ async def post_nvs(request, apply=False):
             log.error(f"Failed to apply config to {hostname} ({e})")
             return "Error"
     else:
+        save_nvs_to_db(data)
         data = json.dumps(data)
-        save_json_to_file(STORAGE_USER_NVS, data)
         msg = build_msg(data, "nvs")
         log.debug(str(msg))
         if apply:
