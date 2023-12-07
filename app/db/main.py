@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import SQLModel, Session, create_engine, select
 
 from app.const import DB_URL
-from app.db.models import WillowConfigNamespaceType, WillowConfigTable, WillowConfigType
+from app.db.models import WillowClientTable, WillowConfigNamespaceType, WillowConfigTable, WillowConfigType
 from app.internal.config import WillowConfig, WillowNvsConfig, WillowNvsWas, WillowNvsWifi
 
 
@@ -71,6 +71,25 @@ def migrate_user_config(config):
             if v is not None:
                 db_config.config_value = str(v)
             session.add(db_config)
+
+        try:
+            session.commit()
+        except IntegrityError as e:
+            # TODO avoid users thinking something is wrong here
+            log.warning(e)
+            session.rollback()
+
+
+def migrate_user_client_config(clients):
+    log.debug(f"clients: {clients}")
+
+    with Session(engine) as session:
+        for client in iter(clients):
+            db_client = WillowClientTable(
+                label=client["label"],
+                mac_addr=client["mac_addr"]
+            )
+            session.add(db_client)
 
         try:
             session.commit()
