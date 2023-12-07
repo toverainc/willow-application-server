@@ -7,10 +7,9 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.db.main import get_devices_db
+from app.db.main import get_devices_db, save_client_config_to_db
 
-from ..const import STORAGE_USER_CLIENT_CONFIG
-from ..internal.was import device_command, get_devices, warm_tts
+from ..internal.was import device_command, warm_tts
 
 
 log = getLogger("WAS")
@@ -78,7 +77,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
         finally:
             return
     elif device.action == "config":
-        devices = get_devices()
+        devices = get_devices_db()
         new = True
 
         for i, device in enumerate(devices):
@@ -90,9 +89,7 @@ async def api_post_client(request: Request, device: PostClient = Depends()):
         if new and len(data['mac_addr']) > 0:
             devices.append(data)
 
-        with open(STORAGE_USER_CLIENT_CONFIG, "w") as devices_file:
-            json.dump(devices, devices_file)
-        devices_file.close()
+        save_client_config_to_db(devices)
     elif device.action == 'notify':
         log.debug(f"received notify command on API: {data}")
         warm_tts(data["data"])
