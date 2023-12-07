@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, Session, create_engine, select
 
 from app.const import DB_URL
 from app.db.models import WillowConfigNamespaceType, WillowConfigTable, WillowConfigType
-from app.internal.config import WillowConfig, WillowNvsConfig
+from app.internal.config import WillowConfig, WillowNvsConfig, WillowNvsWas, WillowNvsWifi
 
 
 log = getLogger("WAS")
@@ -30,6 +30,28 @@ def get_config_db():
 
         for record in records:
             setattr(config, record.config_name, record.config_value)
+
+    return config.model_dump(exclude_none=True)
+
+
+def get_nvs_db():
+    config = WillowNvsConfig()
+    config_was = WillowNvsWas()
+    config_wifi = WillowNvsWifi()
+
+    with Session(engine) as session:
+        stmt = select(WillowConfigTable).where(WillowConfigTable.config_type == WillowConfigType.nvs)
+        records = session.exec(stmt)
+
+        for record in records:
+            if record.config_namespace == WillowConfigNamespaceType.WAS:
+                setattr(config_was, record.config_name, record.config_value)
+
+            elif record.config_namespace == WillowConfigNamespaceType.WIFI:
+                setattr(config_wifi, record.config_name, record.config_value)
+
+        config.WAS = config_was
+        config.WIFI = config_wifi
 
     return config.model_dump(exclude_none=True)
 
