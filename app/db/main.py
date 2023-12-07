@@ -158,3 +158,62 @@ def save_config_to_db(config):
         except IntegrityError as e:
             log.warning(e)
             session.rollback()
+
+
+def save_nvs_to_db(config):
+    config = WillowNvsConfig.parse_obj(config)
+    log.debug(f"save_nvs_to_db: {config}")
+
+    with Session(engine) as session:
+        for name, value in iter(config.WAS):
+            stmt = select(WillowConfigTable).where(
+                WillowConfigTable.config_type == WillowConfigType.nvs,
+                WillowConfigTable.config_name == name,
+                WillowConfigTable.config_namespace == WillowConfigNamespaceType.WAS,
+            )
+            record = session.exec(stmt).first()
+
+            if record is None:
+                record = WillowConfigTable(
+                    config_type=WillowConfigType.nvs,
+                    config_name=name,
+                    config_namespace=WillowConfigNamespaceType.WAS,
+                    config_value=str(value),
+                )
+
+            else:
+                if record.config_value == str(value):
+                    continue
+                record.config_value = str(value)
+
+            session.add(record)
+
+        for name, value in iter(config.WIFI):
+            stmt = select(WillowConfigTable).where(
+                WillowConfigTable.config_type == WillowConfigType.nvs,
+                WillowConfigTable.config_name == name,
+                WillowConfigTable.config_namespace == WillowConfigNamespaceType.WIFI,
+            )
+            record = session.exec(stmt).first()
+
+            if record is None:
+                record = WillowConfigTable(
+                    config_type=WillowConfigType.nvs,
+                    config_name=name,
+                    config_namespace=WillowConfigNamespaceType.WIFI,
+                    config_value=str(value),
+                )
+
+            else:
+                if record.config_value == str(value):
+                    continue
+                record.config_value = str(value)
+
+            session.add(record)
+
+        try:
+            session.commit()
+            session.refresh(record)
+        except IntegrityError as e:
+            log.warning(e)
+            session.rollback()
