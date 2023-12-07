@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import SQLModel, Session, create_engine, select
+from sqlmodel import Session, create_engine, select
 
 from app.const import DB_URL
 from app.db.models import WillowClientTable, WillowConfigNamespaceType, WillowConfigTable, WillowConfigType
