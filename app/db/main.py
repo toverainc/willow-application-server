@@ -19,6 +19,20 @@ if settings.db_url.find("sqlite://") != -1:
 engine = create_engine(settings.db_url, echo=False, connect_args=connect_args)
 
 
+def convert_str_or_none(input):
+    """ Convert value to str or None
+
+    We're saving values of different type in the config_value field of WillowConfigTable
+    We therefore need to cast the value to str.
+    Casting None to str would result in "None" being save in the database.
+    This is a helper function to avoid that.
+    """
+    if input is None:
+        return None
+    else:
+        return str(input)
+
+
 def get_config_db():
     config = WillowConfig()
 
@@ -78,9 +92,9 @@ def migrate_user_config(config):
             db_config = WillowConfigTable(
                 config_type=WillowConfigType.config,
                 config_name=k,
+                config_value=convert_str_or_none(v)
             )
-            # we need to cast to str here as we're saving different types (bool, int, str)
-            # casting None to str would save "None" in the db
+
             if v is not None:
                 db_config.config_value = str(v)
             session.add(db_config)
@@ -192,24 +206,14 @@ def save_config_to_db(config):
                 record = WillowConfigTable(
                     config_type=WillowConfigType.config,
                     config_name=name,
+                    config_value=convert_str_or_none(value)
                 )
-                # we need to cast to str here as we're saving different types (bool, int, str)
-                # casting None to str would save "None" in the db
-                if value is None:
-                    record.config_value = None
-                else:
-                    record.config_value = str(value)
 
             else:
-                if record.config_value == str(value):
+                if record.config_value == convert_str_or_none(value):
                     continue
 
-                # we need to cast to str here as we're saving different types (bool, int, str)
-                # casting None to str would save "None" in the db
-                if value is None:
-                    record.config_value = None
-                else:
-                    record.config_value = str(value)
+                record.config_value = convert_str_or_none(value)
 
             session.add(record)
 
