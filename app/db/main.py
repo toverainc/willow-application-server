@@ -16,7 +16,7 @@ db_url = deconfig('DB_URL', DB_URL)
 if db_url.find("sqlite://") != -1:
     connect_args["check_same_thread"] = False
 
-engine = create_engine(db_url, echo=True, connect_args=connect_args)
+engine = create_engine(db_url, echo=False, connect_args=connect_args)
 
 
 def get_config_db():
