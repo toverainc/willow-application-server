@@ -30,9 +30,16 @@ class CommandEndpointResult(BaseModel):
     ok: bool = False
     speech: str = "Error!"
 
+    def sanitize(self):
+        self.speech = self.speech.replace("\n", " ").replace("\r", " ").lstrip()
+
 
 class CommandEndpointResponse(BaseModel):
     result: CommandEndpointResult = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.result.sanitize()
 
 
 class CommandEndpoint():
