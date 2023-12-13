@@ -241,7 +241,7 @@ async def websocket_endpoint(
                         log.error("WAS Command Endpoint not active")
 
                 elif msg["cmd"] == "get_config":
-                    asyncio.ensure_future(websocket.send_text(build_msg(json.dumps(get_config_db()), "config")))
+                    asyncio.ensure_future(websocket.send_text(build_msg(get_config_db(), "config")))
 
             elif "goodbye" in msg:
                 app.connmgr.disconnect(websocket)
