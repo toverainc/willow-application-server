@@ -36,7 +36,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def build_msg(config, container):
     try:
-        msg = json.dumps({container: json.loads(config)}, sort_keys=True)
+        msg = json.dumps({container: config}, sort_keys=True)
         return msg
     except Exception as e:
         log.error(f"Failed to build config message: {e}")
@@ -314,7 +314,7 @@ async def post_config(request, apply=False):
     if 'hostname' in data:
         hostname = data["hostname"]
         data = get_config_db()
-        msg = build_msg(json.dumps(data), "config")
+        msg = build_msg(data, "config")
         try:
             ws = request.app.connmgr.get_client_by_hostname(hostname)
             await ws.send_text(msg)
@@ -329,7 +329,6 @@ async def post_config(request, apply=False):
             log.debug(f"wis_tts_url_v2: {data['wis_tts_url_v2']}")
 
         save_config_to_db(data)
-        data = json.dumps(data)
         msg = build_msg(data, "config")
         log.debug(str(msg))
         if apply:
@@ -342,7 +341,7 @@ async def post_nvs(request, apply=False):
     if 'hostname' in data:
         hostname = data["hostname"]
         data = get_nvs_db()
-        msg = build_msg(json.dumps(data), "nvs")
+        msg = build_msg(data, "nvs")
         try:
             ws = request.app.connmgr.get_client_by_hostname(hostname)
             await ws.send_text(msg)
@@ -352,7 +351,6 @@ async def post_nvs(request, apply=False):
             return "Error"
     else:
         save_nvs_to_db(data)
-        data = json.dumps(data)
         msg = build_msg(data, "nvs")
         log.debug(str(msg))
         if apply:
