@@ -255,6 +255,8 @@ async def websocket_endpoint(
                 if "mac_addr" in msg["hello"]:
                     mac_addr = hex_mac(msg["hello"]["mac_addr"])
                     app.connmgr.update_client(websocket, "mac_addr", mac_addr)
+                if "srmodels" in msg["hello"]:
+                    app.connmgr.update_client(websocket, "srmodels", msg["hello"]["srmodels"])
 
     except WebSocketDisconnect:
         app.connmgr.disconnect(websocket)

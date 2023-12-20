@@ -71,3 +71,5 @@ class ConnMgr:
             self.connected_clients[ws].set_platform(value)
         elif key == "mac_addr":
             self.connected_clients[ws].set_mac_addr(value)
+        elif key == "srmodels":
+            self.connected_clients[ws].set_srmodels(value)
