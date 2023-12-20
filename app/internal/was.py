@@ -20,6 +20,7 @@ from app.internal.srmodels import SrModel
 
 from ..const import (
     DIR_OTA,
+    STORAGE_PACK_MODEL,
     STORAGE_TZ,
     STORAGE_USER_CLIENT_CONFIG,
     STORAGE_USER_CONFIG,
@@ -27,6 +28,7 @@ from ..const import (
     STORAGE_USER_NVS,
     STORAGE_USER_WAS,
     URL_WILLOW_MODELS,
+    URL_WILLOW_PACK_MODEL,
     URL_WILLOW_RELEASES,
     URL_WILLOW_TZ,
 )
@@ -278,6 +280,14 @@ def get_releases_willow():
     else:
         releases = releases_local + releases
     return releases
+
+
+def get_pack_model(refresh=False):
+    if not os.path.isfile(STORAGE_PACK_MODEL) or refresh:
+        resp = requests.get(URL_WILLOW_PACK_MODEL)
+        with open(STORAGE_PACK_MODEL, "w") as pack_model_file:
+            pack_model_file.write(resp.text)
+        pack_model_file.close()
 
 
 def get_tz():
