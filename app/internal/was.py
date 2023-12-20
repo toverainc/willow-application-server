@@ -5,11 +5,15 @@ import random
 import re
 import requests
 import socket
+import sys
+import tarfile
+import tempfile
 import time
 import urllib
 import urllib3
 
 from hashlib import sha256
+from importlib import util
 from logging import getLogger
 
 from num2words import num2words
@@ -19,6 +23,7 @@ from app.db.main import get_config_db, get_nvs_db, save_config_to_db, save_nvs_t
 from app.internal.srmodels import SrModel
 
 from ..const import (
+    DIR_ASSET,
     DIR_OTA,
     STORAGE_PACK_MODEL,
     STORAGE_TZ,
@@ -44,6 +49,38 @@ def build_msg(config, container):
         return msg
     except Exception as e:
         log.error(f"Failed to build config message: {e}")
+
+# TODO raise exception if model not found in supported_models
+def build_srmodels_bin(models):
+    get_pack_model()
+    supported_models = get_models()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log.debug(f"packing SR models in {tmpdir}")
+
+        for model in models:
+            for supported_model in supported_models:
+                supported_model = SrModel.parse_obj(supported_model)
+                if supported_model.name == model:
+                    resp = requests.get(supported_model.url)
+                    model_download_path = f"{tmpdir}/{supported_model.name}.tar.gz"
+
+                    with open(model_download_path, "wb") as model_tarball:
+                        model_tarball.write(resp.content)
+                    model_tarball.close()
+
+                    model_tarfile = tarfile.open(model_download_path)
+                    model_tarfile.extractall(path=tmpdir)
+                    model_tarfile.close()
+
+                    os.remove(model_download_path)
+
+        asset_path = f"{DIR_ASSET}/other/srmodels.bin"
+        spec_pack_model = util.spec_from_file_location("pack_model", STORAGE_PACK_MODEL)
+        mod_pack_model = util.module_from_spec(spec_pack_model)
+        sys.modules["pack_model"] = mod_pack_model
+        spec_pack_model.loader.exec_module(mod_pack_model)
+        mod_pack_model.pack_models(tmpdir, out_file=asset_path)
 
 
 def construct_url(host, port, tls=False, ws=False):
