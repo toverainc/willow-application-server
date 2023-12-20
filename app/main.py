@@ -50,6 +50,7 @@ from .internal.wake import WakeEvent, WakeSession
 from .routers import asset
 from .routers import client
 from .routers import config
+from .routers import model
 from .routers import ota
 from .routers import release
 from .routers import status
@@ -171,6 +172,7 @@ def api_redirect_admin():
 app.include_router(asset.router)
 app.include_router(client.router)
 app.include_router(config.router)
+app.include_router(model.router)
 app.include_router(ota.router)
 app.include_router(release.router)
 app.include_router(status.router)

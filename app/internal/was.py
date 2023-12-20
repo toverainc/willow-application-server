@@ -16,6 +16,7 @@ from num2words import num2words
 from websockets.sync.client import connect
 
 from app.db.main import get_config_db, get_nvs_db, save_config_to_db, save_nvs_to_db
+from app.internal.srmodels import SrModel
 
 from ..const import (
     DIR_OTA,
@@ -25,6 +26,7 @@ from ..const import (
     STORAGE_USER_MULTINET,
     STORAGE_USER_NVS,
     STORAGE_USER_WAS,
+    URL_WILLOW_MODELS,
     URL_WILLOW_RELEASES,
     URL_WILLOW_TZ,
 )
@@ -185,6 +187,22 @@ def get_json_from_file(path):
 def get_mime_type(filename):
     mime_type = magic.Magic(mime=True).from_file(filename)
     return mime_type
+
+
+def get_models():
+    models = []
+
+    try:
+        models = requests.get(URL_WILLOW_MODELS)
+        models = models.json()
+        models = json.loads(models)
+        for model in models:
+            srmodel = SrModel.parse_obj(model)
+            models.append(srmodel)
+    except Exception:
+        pass
+
+    return models
 
 
 def get_multinet():
