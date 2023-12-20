@@ -3,6 +3,7 @@ class Client:
         self.hostname = "unknown"
         self.platform = "unknown"
         self.mac_addr = "unknown"
+        self.srmodels = []
         self.ua = ua
         self.notification_active = 0
 
@@ -14,6 +15,9 @@ class Client:
 
     def set_mac_addr(self, mac_addr):
         self.mac_addr = mac_addr
+
+    def set_srmodels(self, srmodels):
+        self.srmodels = srmodels
 
     def is_notification_active(self):
         return self.notification_active != 0
