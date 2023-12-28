@@ -51,10 +51,14 @@ class WillowWakeMode(str, Enum):
     _3CH_95 = '3CH_95'
 
 
+# TODO: get from CF worker when we support full dynamic wake
 class WillowWakeWord(str, Enum):
     alexa = 'alexa'
+    computer = 'computer'
+    heywillow = "heywillow"
     hiesp = 'hiesp'
     hilexin = 'hilexin'
+    jarvis = 'jarvis'
 
 
 class WillowConfig(BaseModel, validate_assignment=True):
