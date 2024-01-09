@@ -1,7 +1,7 @@
 {
   "aec": true,
   "audio_codec": "PCM",
-  "audio_response_type": "None",
+  "audio_response_type": "TTS",
   "bss": false,
   "command_endpoint": "Home Assistant",
   "display_timeout": 10,
