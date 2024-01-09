@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: download and extract UI tarbal 
         if: ${{ github.ref_type == 'tag' }}
@@ -60,9 +63,15 @@ jobs:
             type=ref,event=pr
             type=ref,event=branch
 
+      - name: git describe
+        run: echo "WAS_VERSION=$(git describe --always --dirty --tags)" >> $GITHUB_OUTPUT
+        id: gd
+
       - name: build container
         uses: docker/build-push-action@v4
         with:
+          build-args:
+            WAS_VERSION=${{ steps.gd.outputs.WAS_VERSION }}
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
