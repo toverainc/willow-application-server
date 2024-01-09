@@ -48,6 +48,9 @@ WEB_UI_URL="https://github.com/toverainc/willow-application-server-ui.git"
 # Reachable WAS IP for the "default" interface
 WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 
+# Get WAS version
+export WAS_VERSION=$(git describe --always --dirty --tags)
+
 set +a
 
 if [ -z "$WAS_IP" ]; then
@@ -74,7 +77,7 @@ freeze_requirements() {
 }
 
 build-docker() {
-    docker build -t "$IMAGE":"$TAG" .
+    docker build --build-arg "WAS_VERSION=$WAS_VERSION" -t "$IMAGE":"$TAG" .
 }
 
 build-web-ui() {
