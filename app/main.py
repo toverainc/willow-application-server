@@ -31,6 +31,7 @@ from app.internal.was import (
     build_msg,
     get_tz_config,
 )
+from app.settings import get_settings
 
 from .internal.client import Client
 from .internal.connmgr import ConnMgr
@@ -50,12 +51,14 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 
+settings = get_settings()
+
 app = FastAPI(title="Willow Application Server",
               description="Willow Management API",
-              version="0.1",
               openapi_url="/openapi.json",
               docs_url="/docs",
-              redoc_url="/redoc")
+              redoc_url="/redoc",
+              version=settings.was_version)
 
 log = logging.getLogger("WAS")
 try:
