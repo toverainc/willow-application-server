@@ -54,7 +54,7 @@ class PostRelease(BaseModel):
     action: Literal['cache', 'delete'] = Field(Query(..., description='Release Cache Control'))
 
 
-@router.post("/api/release")
+@router.post("/release")
 async def api_post_release(request: Request, release: PostRelease = Depends()):
     log.debug('API POST RELEASE: Request')
     if release.action == "cache":
