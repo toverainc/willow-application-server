@@ -11,13 +11,16 @@ force_openai_model = None
 if settings.openai_api_key is not None:
     log.info("Initializing OpenAI Client")
     import openai
-    openai_client = openai.OpenAI(
-        api_key=settings.openai_api_key, base_url=settings.openai_base_url)
-    models = openai_client.models.list()
-    if len(models.data) == 1:
-        force_openai_model = models.data[0].id
-        log.info(
-            f"Only one model on OpenAI endpoint - forcing model '{force_openai_model}'")
+    try:
+        openai_client = openai.OpenAI(
+            api_key=settings.openai_api_key, base_url=settings.openai_base_url)
+        models = openai_client.models.list()
+        if len(models.data) == 1:
+            force_openai_model = models.data[0].id
+            log.info(
+                f"Only one model on OpenAI endpoint - forcing model '{force_openai_model}'")
+    except Exception as e:
+        log.error(f"failed to initialize OpenAI client: {e}")
 else:
     openai_client = None
 
