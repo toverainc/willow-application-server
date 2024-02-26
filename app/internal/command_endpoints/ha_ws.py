@@ -104,12 +104,14 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
                             self.log.debug(self.connmap[id])
 
                             if self.app.wac_enabled:
+                                if self.connmap[id]["final"]:
+                                    return
                                 wac_success, wac_command = wac_search(command)
 
                                 if wac_success:
                                     jsondata = self.connmap[id]["jsondata"]
                                     jsondata["text"] = wac_command
-                                    self.send(jsondata, ws)
+                                    self.send(jsondata, ws, True)
                                     self.connmap.pop(id)
                                     return
                                 else:
@@ -130,11 +132,12 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     def parse_response(self, response):
         return None
 
-    def send(self, jsondata, ws):
+    def send(self, jsondata, ws, final=False):
         id = int(time.time() * 1000)
 
         if id not in self.connmap:
             self.connmap[id] = {
+                'final': final,
                 'jsondata': copy(jsondata),
                 'ws': ws,
             }
