@@ -193,12 +193,17 @@ def get_nvs():
     return get_json_from_file(STORAGE_USER_NVS)
 
 
-# TODO: Support HTTPs
 def get_release_url(was_url, version, platform):
-    url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
-    host = url_parts.group(1)
-    port = url_parts.group(2)
-    url = f"http://{host}:{port}/api/ota?version={version}&platform={platform}"
+    #url_parts = re.match(r"^(?:\w+:\/\/)?([^\/:]+)(?::(\d+))?", was_url)
+    parsed = urllib.parse.urlparse(was_url)
+
+    match parsed.scheme:
+        case "ws":
+            scheme = "http"
+        case "wss":
+            scheme = "https"
+
+    url = f"{scheme}://{parsed.netloc}/api/ota?version={version}&platform={platform}"
     return url
 
 
