@@ -1,4 +1,9 @@
+ARG WAS_UI_TAG="main"
+
+FROM ghcr.io/toverainc/willow-application-server-ui:${WAS_UI_TAG} AS was-ui
+
 FROM python:3.12.9-slim-bookworm
+
 
 WORKDIR /app
 
@@ -10,6 +15,8 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
 
 COPY . .
+
+COPY --from=was-ui /was-ui/out/ /app/static/admin/
 
 RUN pytest
 

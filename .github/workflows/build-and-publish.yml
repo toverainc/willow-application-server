@@ -9,6 +9,9 @@ env:
 on:
   pull_request:
   push:
+    branches:
+      - 'main'
+      - 'release/**'
     tag:
       - '*'
 
@@ -21,14 +24,6 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-
-      - name: download and extract UI tarbal 
-        if: ${{ github.ref_type == 'tag' }}
-        run: |
-          wget https://github.com/toverainc/willow-application-server-ui/releases/download/${{ github.ref_name }}/willow-application-server-ui.tar.gz
-          mkdir static/admin/
-          tar --directory=static/admin/ --strip-components=1 -xzf willow-application-server-ui.tar.gz
-          rm willow-application-server-ui.tar.gz
 
       - name: get gen-tz.py
         run: curl --output /tmp/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/4b9caa3066434b015a99cadb74050fd46b7cc12b/gen-tz.py
@@ -46,6 +41,7 @@ jobs:
 
       - name: login to ghcr.io
         uses: docker/login-action@v2
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -60,8 +56,14 @@ jobs:
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/0.1.') }}
             type=raw,value=rc,enable=${{ contains(github.ref, '-rc.') }}
             type=semver,pattern={{version}}
-            type=ref,event=pr
             type=ref,event=branch
+            type=raw,value=main,enable=true
+
+      - name: extract tag name
+        id: tag
+        run: |
+          tag=${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          echo "WAS_UI_TAG=${tag##*:}" >> $GITHUB_OUTPUT
 
       - name: git describe
         run: echo "WAS_VERSION=$(git describe --always --dirty --tags)" >> $GITHUB_OUTPUT
@@ -70,7 +72,8 @@ jobs:
       - name: build container
         uses: docker/build-push-action@v4
         with:
-          build-args:
+          build-args: |
+            WAS_UI_TAG=${{ steps.tag.outputs.WAS_UI_TAG }}
             WAS_VERSION=${{ steps.gd.outputs.WAS_VERSION }}
           context: .
           file: ./Dockerfile
