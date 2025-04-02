@@ -2,13 +2,12 @@ ARG WAS_UI_TAG="main"
 
 FROM ghcr.io/toverainc/willow-application-server-ui:${WAS_UI_TAG} AS was-ui
 
-FROM python:3.12.9-slim-bookworm
+FROM python:3.12.9-alpine3.21
 
 
 WORKDIR /app
 
-# Install gcc temporarily until wheels for httptools on Python 3.12 are available
-RUN apt-get update && apt-get install --no-install-recommends -y gcc libc6-dev libmagic1 && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache alpine-sdk
 
 COPY requirements.txt .
 
