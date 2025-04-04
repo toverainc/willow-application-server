@@ -1,8 +1,8 @@
 DIR_ASSET = '/app/storage/asset'
 DIR_OTA = '/app/storage/ota'
-URL_WILLOW_RELEASES = 'https://worker.heywillow.io/api/release?format=was'
-URL_WILLOW_CONFIG = 'https://worker.heywillow.io/api/config'
-URL_WILLOW_TZ = 'https://worker.heywillow.io/api/asset?type=tz'
+URL_WILLOW_RELEASES = 'https://worker.heywillow.org/api/release?format=was'
+URL_WILLOW_CONFIG = 'https://worker.heywillow.org/api/config'
+URL_WILLOW_TZ = 'https://worker.heywillow.org/api/asset?type=tz'
 
 STORAGE_USER_CLIENT_CONFIG = 'storage/user_client_config.json'
 STORAGE_USER_CONFIG = 'storage/user_config.json'
