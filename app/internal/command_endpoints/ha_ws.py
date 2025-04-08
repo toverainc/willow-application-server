@@ -81,7 +81,12 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
                     response_type = msg["event"]["data"]["intent_output"]["response"]["response_type"]
                     if response_type == "action_done":
                         out.ok = True
-                    out.speech = msg["event"]["data"]["intent_output"]["response"]["speech"]["plain"]["speech"]
+                    response = msg["event"]["data"]["intent_output"]["response"]
+                    # Not all intents return speech (e.g. HassNeverMind)
+                    if 'plain' in response["speech"]:
+                        out.speech = response["speech"]["plain"]["speech"]
+                    else:
+                        out.speech = ""
                     command_endpoint_response = CommandEndpointResponse(result=out)
                     self.log.debug(f"sending {command_endpoint_response} to {ws}")
                     asyncio.ensure_future(ws.send_text(command_endpoint_response.model_dump_json()))

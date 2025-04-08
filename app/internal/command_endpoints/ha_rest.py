@@ -24,8 +24,10 @@ class HomeAssistantRestEndpoint(RestEndpoint):
         return f"{ha_url_scheme}{self.host}:{self.port}/api/conversation/process"
 
     def get_speech(self, data):
-        speech = data["response"]["speech"]["plain"]["speech"]
-        return speech
+        if 'plain' in data["response"]["speech"]:
+            return data["response"]["speech"]["plain"]["speech"]
+        else:
+            return ""
 
     def parse_response(self, response):
         res = CommandEndpointResult()
