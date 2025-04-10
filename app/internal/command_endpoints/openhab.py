@@ -8,5 +8,5 @@ class OpenhabEndpoint(RestEndpoint):
         self.config = RestConfig(auth_type=RestAuthType.BASIC, auth_user=token)
         self.url = f"{url}/rest/voice/interpreters"
 
-    def send(self, jsondata=None, ws=None):
+    def send(self, jsondata=None, ws=None, client=None):
         return super().send(data=jsondata["text"])

@@ -68,7 +68,7 @@ class RestEndpoint(CommandEndpoint):
         command_endpoint_response = CommandEndpointResponse(result=res)
         return command_endpoint_response.model_dump_json()
 
-    def send(self, data=None, jsondata=None, ws=None):
+    def send(self, data=None, jsondata=None, ws=None, client=None):
         try:
             basic = None
             headers = {}

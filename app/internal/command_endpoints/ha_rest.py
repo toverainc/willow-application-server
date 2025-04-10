@@ -38,6 +38,6 @@ class HomeAssistantRestEndpoint(RestEndpoint):
         command_endpoint_response = CommandEndpointResponse(result=res)
         return command_endpoint_response.model_dump_json()
 
-    def send(self, data=None, jsondata=None, ws=None):
+    def send(self, data=None, jsondata=None, ws=None, client=None):
         out = {'text': jsondata["text"], 'language': jsondata["language"]}
         return super().send(jsondata=out)
