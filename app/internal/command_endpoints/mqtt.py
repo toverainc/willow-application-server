@@ -110,7 +110,7 @@ class MqttEndpoint(CommandEndpoint):
         command_endpoint_response = CommandEndpointResponse(result=res)
         return command_endpoint_response.model_dump_json()
 
-    def send(self, data=None, jsondata=None, ws=None):
+    def send(self, data=None, jsondata=None, ws=None, client=None):
         if not self.connected:
             raise CommandEndpointRuntimeException(f"{self.name} not connected")
         try:

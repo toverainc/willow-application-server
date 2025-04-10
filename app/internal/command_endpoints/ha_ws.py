@@ -21,6 +21,7 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     connmap = {}
 
     def __init__(self, app, host, port, tls, token):
+
         self.app = app
         self.host = host
         self.port = port
@@ -105,7 +106,7 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     def next_id(self):
         return int(time.monotonic_ns())
 
-    def send(self, jsondata, ws):
+    def send(self, jsondata, ws, client=None):
         id = self.next_id()
 
         if id not in self.connmap:

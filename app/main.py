@@ -221,7 +221,7 @@ async def websocket_endpoint(
                     if app.command_endpoint is not None:
                         log.debug(f"Sending {msg['data']} to {app.command_endpoint.name}")
                         try:
-                            resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket)
+                            resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket, client=client)
                             if resp is not None:
                                 resp = app.command_endpoint.parse_response(resp)
                                 log.debug(f"Got response {resp} from endpoint")
