@@ -102,8 +102,11 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     def parse_response(self, response):
         return None
 
+    def next_id(self):
+        return int(time.time() * 1000)
+
     def send(self, jsondata, ws):
-        id = int(time.time() * 1000)
+        id = self.next_id()
 
         if id not in self.connmap:
             self.connmap[id] = ws
