@@ -29,6 +29,8 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
         self.tls = tls
         self.url = self.construct_url(ws=True)
 
+        self.ha_willow_devices = {}
+        self.ha_willow_devices_request_id = None
         self.haws = None
 
         if not self.is_supported():
@@ -99,6 +101,24 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
                 }
                 self.log.debug(f"authenticating HA WebSocket connection: {auth_msg}")
                 await self.haws.send(json.dumps(auth_msg))
+            elif msg["type"] == "auth_ok":
+                self.ha_willow_devices_request_id = self.next_id()
+                msg = {
+                    "type": "config/device_registry/list",
+                    "id": self.ha_willow_devices_request_id
+                }
+                self.log.debug(f"fetching devices: {msg}")
+                await self.haws.send(json.dumps(msg))
+            elif msg["type"] == "result" and msg["success"]:
+                if msg["id"] == self.ha_willow_devices_request_id:
+                    devices = msg["result"]
+                    self.ha_willow_devices = {
+                        ident[1]: item["id"]
+                        for item in devices
+                        for ident in item.get("identifiers", [])
+                        if ident[0] == "willow"
+                    }
+                    self.log.debug(f"received willow devics: {self.ha_willow_devices}")
 
     def parse_response(self, response):
         return None
@@ -122,6 +142,10 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
             'start_stage': 'intent',
             'type': 'assist_pipeline/run',
         }
+
+        if client.mac_addr in self.ha_willow_devices:
+            self.log.info("HA has a registered device for this willow satellite")
+            out["device_id"] = self.ha_willow_devices[client.mac_addr]
 
         self.log.debug(f"sending to HA WS: {out}")
         asyncio.ensure_future(self.haws.send(json.dumps(out)))
