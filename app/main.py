@@ -209,8 +209,10 @@ async def websocket_endpoint(
                 if "wake_volume" in msg["wake_start"]:
                     wake_event = WakeEvent(websocket, msg["wake_start"]["wake_volume"])
                     wake_session.add_event(wake_event)
+                app.command_endpoint.send_fnf_event(event="wake_start", ws=websocket, client=client)
 
             elif "wake_end" in msg:
+                app.command_endpoint.send_fnf_event(event="wake_end", ws=websocket, client=client)
                 pass
 
             elif "notify_done" in msg:
@@ -221,7 +223,9 @@ async def websocket_endpoint(
                     if app.command_endpoint is not None:
                         log.debug(f"Sending {msg['data']} to {app.command_endpoint.name}")
                         try:
+                            app.command_endpoint.send_fnf_event(event="starting_command", ws=websocket, client=client)
                             resp = app.command_endpoint.send(jsondata=msg["data"], ws=websocket, client=client)
+                            app.command_endpoint.send_fnf_event(event="command_finished", ws=websocket, client=client)
                             if resp is not None:
                                 resp = app.command_endpoint.parse_response(resp)
                                 log.debug(f"Got response {resp} from endpoint")

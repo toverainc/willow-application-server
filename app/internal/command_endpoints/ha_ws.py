@@ -126,6 +126,23 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     def next_id(self):
         return int(time.monotonic_ns())
 
+    def send_fnf_event(self, event, ws, client):
+        # We only send events for recognised HA devices
+        if client.mac_addr in self.ha_willow_devices:
+            # we don't need to track websockets in a connection map as we're treating events as FireNForget
+            out = {
+                'id': self.next_id(),
+                'type': 'fire_event',
+                'event_type': 'willow_event',
+                'event_data': {
+                    "device_id": self.ha_willow_devices[client.mac_addr],
+                    "type": event
+                }
+            }
+
+            self.log.debug(f"sending to HA WS: {out}")
+            asyncio.ensure_future(self.haws.send(json.dumps(out)))
+
     def send(self, jsondata, ws, client=None):
         id = self.next_id()
 
