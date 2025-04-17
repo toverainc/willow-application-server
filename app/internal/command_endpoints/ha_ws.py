@@ -103,7 +103,7 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
         return None
 
     def next_id(self):
-        return int(time.time() * 1000)
+        return int(time.monotonic_ns())
 
     def send(self, jsondata, ws):
         id = self.next_id()
