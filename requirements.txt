@@ -7,7 +7,7 @@ dnspython==2.6.1
 docopt==0.6.2
 email-validator==2.0.0.post2
 fastapi==0.115.12
-h11==0.14.0
+h11==0.16.0
 httpcore==0.18.0
 httptools==0.6.0
 httpx==0.25.0
