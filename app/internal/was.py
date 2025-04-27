@@ -290,6 +290,7 @@ def get_was_url():
 
 
 def is_safe_path(basedir, path, follow_symlinks=True):
+    path = os.path.normpath(path)
     # resolves symbolic links
     if follow_symlinks:
         matchpath = os.path.realpath(path)
