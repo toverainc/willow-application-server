@@ -160,9 +160,7 @@ cython_debug/
 #.idea/
 
 # WAS
-gen-tz.py
 static/
-tz.json
 storage
 
 # Web UI working directory and others

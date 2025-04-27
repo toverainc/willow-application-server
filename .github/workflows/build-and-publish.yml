@@ -25,12 +25,6 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: get gen-tz.py
-        run: curl --output /tmp/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/4b9caa3066434b015a99cadb74050fd46b7cc12b/gen-tz.py
-
-      - name: generate tz.json
-        run: python3 /tmp/gen-tz.py --json > tz.json
-
       - name: configure QEMU
         uses: docker/setup-qemu-action@v2
         with:

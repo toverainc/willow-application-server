@@ -267,17 +267,6 @@ def get_releases_willow():
     return releases
 
 
-def get_tz():
-    try:
-        with open("tz.json", "r") as config_file:
-            tz = json.load(config_file)
-        config_file.close()
-    except Exception:
-        tz = {}
-
-    return tz
-
-
 def get_tz_config(refresh=False):
     if refresh:
         tz = requests.get(URL_WILLOW_TZ).json()

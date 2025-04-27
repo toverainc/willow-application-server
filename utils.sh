@@ -97,11 +97,6 @@ build-web-ui() {
     ./utils.sh build
 }
 
-gen-tz() {
-    curl --output misc/gen-tz.py https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/gen-tz.py
-    python3 misc/gen-tz.py --json > tz.json
-}
-
 shell() {
     docker run -it -v $WAS_DIR:/app -v $WAS_DIR/cache:/root/.cache -v willow-application-server_was-storage:/app/storage "$IMAGE":"$TAG" \
         /usr/bin/env bash
@@ -110,7 +105,6 @@ shell() {
 case $1 in
 
 build-docker|build)
-    gen-tz
     build-docker
 ;;
 
@@ -120,10 +114,6 @@ build-web-ui)
 
 freeze-requirements)
     freeze_requirements
-;;
-
-gen-tz)
-    gen-tz
 ;;
 
 start|run|up)
