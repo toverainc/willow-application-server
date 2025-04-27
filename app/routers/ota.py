@@ -24,7 +24,7 @@ class GetOta(BaseModel):
 @router.get("/ota")
 async def api_get_ota(ota: GetOta = Depends()):
     log.debug('API GET OTA: Request')
-    ota_file = f"{DIR_OTA}/{ota.version}/{ota.platform}.bin"
+    ota_file = os.path.join(DIR_OTA, ota.version, ota.platform, ".bin")
     if not is_safe_path(DIR_OTA, ota_file):
         return
     if not os.path.isfile(ota_file):
