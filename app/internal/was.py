@@ -301,7 +301,7 @@ def is_safe_path(basedir, path, follow_symlinks=True):
     if not matchpath.startswith(basedir):
         raise HTTPException(status_code=400, detail=f"invalid asset path {path}")
 
-    return basedir == os.path.commonpath((basedir, matchpath))
+    return matchpath
 
 
 def merge_dict(dict_1, dict_2):
