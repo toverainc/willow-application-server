@@ -61,5 +61,6 @@ async def api_post_release(request: Request, release: PostRelease = Depends()):
     if release.action == "delete":
         data = await request.json()
         path = data['path']
-        if is_safe_path(DIR_OTA, path):
+        path = is_safe_path(path)
+        if path:
             os.remove(path)
