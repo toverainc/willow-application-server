@@ -51,36 +51,14 @@ async def api_get_release(release: GetRelease = Depends()):
 
 
 class PostRelease(BaseModel):
-    action: Literal['cache', 'delete'] = Field(Query(..., description='Release Cache Control'))
+    action: Literal['delete'] = Field(Query(..., description='Release Cache Control'))
 
 
 @router.post("/release")
 async def api_post_release(request: Request, release: PostRelease = Depends()):
     log.debug('API POST RELEASE: Request')
-    if release.action == "cache":
-        data = await request.json()
 
-        dir = f"{DIR_OTA}/{data['version']}"
-        # Check for safe path
-        if not is_safe_path(DIR_OTA, dir):
-            return
-        Path(dir).mkdir(parents=True, exist_ok=True)
-
-        path = f"{dir}/{data['platform']}.bin"
-        if os.path.exists(path):
-            if os.path.getsize(path) == data['size']:
-                return
-            else:
-                os.remove(path)
-
-        resp = get(data['willow_url'])
-        if resp.status_code == 200:
-            with open(path, "wb") as fw:
-                fw.write(resp.content)
-            return
-        else:
-            raise HTTPException(status_code=resp.status_code)
-    elif release.action == "delete":
+    if release.action == "delete":
         data = await request.json()
         path = data['path']
         if is_safe_path(DIR_OTA, path):
