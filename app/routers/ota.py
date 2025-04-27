@@ -25,7 +25,8 @@ class GetOta(BaseModel):
 async def api_get_ota(ota: GetOta = Depends()):
     log.debug('API GET OTA: Request')
     ota_file = os.path.join(DIR_OTA, ota.version, ota.platform, ".bin")
-    if not is_safe_path(DIR_OTA, ota_file):
+    ota_file = is_safe_path(ota_file)
+    if not ota_file:
         return
     if not os.path.isfile(ota_file):
         releases = get_releases_willow()
