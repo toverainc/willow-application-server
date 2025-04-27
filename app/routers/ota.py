@@ -24,7 +24,8 @@ class GetOta(BaseModel):
 @router.get("/ota")
 async def api_get_ota(ota: GetOta = Depends()):
     log.debug('API GET OTA: Request')
-    ota_file = os.path.join(DIR_OTA, ota.version, ota.platform, ".bin")
+    ota_dir = is_safe_path(os.path.join(DIR_OTA, ota.version))
+    ota_file = os.path.join(ota_dir, ota.platform, ".bin")
     ota_file = is_safe_path(ota_file)
     if not ota_file:
         return
@@ -35,7 +36,7 @@ async def api_get_ota(ota: GetOta = Depends()):
                 assets = release["assets"]
                 for asset in assets:
                     if asset["platform"] == ota.platform:
-                        Path(f"{DIR_OTA}/{ota.version}").mkdir(parents=True, exist_ok=True)
+                        Path(ota_dir).mkdir(parents=True, exist_ok=True)
                         r = get(asset["browser_download_url"])
                         open(ota_file, 'wb').write(r.content)
 
