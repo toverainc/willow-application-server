@@ -26,7 +26,7 @@ class GetAsset(BaseModel):
 @router.get("/asset")
 async def api_get_asset(asset: GetAsset = Depends()):
     log.debug("API GET ASSET: Request")
-    asset_file = f"{DIR_ASSET}/{asset.type}/{asset.asset}"
+    asset_file = os.path.join(DIR_ASSET, asset.type, asset.asset)
     log.debug(f"asset file: {asset_file}")
     if not is_safe_path(DIR_ASSET, asset_file):
         return
