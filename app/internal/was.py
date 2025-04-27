@@ -9,6 +9,7 @@ import time
 import urllib
 import urllib3
 
+from fastapi import HTTPException
 from hashlib import sha256
 from logging import getLogger
 
@@ -296,6 +297,10 @@ def is_safe_path(basedir, path, follow_symlinks=True):
         matchpath = os.path.realpath(path)
     else:
         matchpath = os.path.abspath(path)
+
+    if not matchpath.startswith(basedir):
+        raise HTTPException(status_code=400, detail=f"invalid asset path {path}")
+
     return basedir == os.path.commonpath((basedir, matchpath))
 
 
