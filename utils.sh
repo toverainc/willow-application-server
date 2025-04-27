@@ -43,7 +43,7 @@ WEB_UI_BRANCH="main"
 WEB_UI_DIR="willow-application-server-ui"
 
 # Web ui URL
-WEB_UI_URL="https://github.com/toverainc/willow-application-server-ui.git"
+WEB_UI_URL="https://github.com/HeyWillow/willow-application-server-ui.git"
 
 # Reachable WAS IP for the "default" interface
 WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')

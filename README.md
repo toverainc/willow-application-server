@@ -8,12 +8,12 @@ All you have to do is run Willow Application Server and connect to it. From ther
 ### Running WAS
 
 ```
-docker run --detach --name=willow-application-server --pull=always --network=host --restart=unless-stopped --volume=was-storage:/app/storage ghcr.io/toverainc/willow-application-server
+docker run --detach --name=willow-application-server --pull=always --network=host --restart=unless-stopped --volume=was-storage:/app/storage ghcr.io/HeyWillow/willow-application-server
 ```
 
 ### Building WAS
 ```
-git clone https://github.com/toverainc/willow-application-server.git && cd willow-application-server
+git clone https://github.com/HeyWillow/willow-application-server.git && cd willow-application-server
 
 ./utils.sh build
 ```
