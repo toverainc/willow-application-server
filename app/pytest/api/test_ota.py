@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.pytest.mock import mock_releases_willow
 
 client = TestClient(app)
 
@@ -14,16 +15,7 @@ class TestOta(unittest.TestCase):
     def test_get_ota(self):
         mock_uri_bad = "/api/ota?platform=ESP32-S3-BOX-3&version=0.0.0-mock.0/../../.."
         mock_uri_good = "/api/ota?platform=ESP32-S3-BOX-3&version=0.0.0-mock.0"
-        mock_releases_willow = [{
-            "name": "0.0.0-mock.0",
-            "tag_name": "0.0.0-mock.0",
-            "assets": [
-                {
-                    "browser_download_url": "bogus",
-                    "platform": "ESP32-S3-BOX-3",
-                }
-            ]
-        }]
+
         mock_response = MagicMock()
         mock_response.content = b"mocked data"
 
