@@ -45,4 +45,4 @@ async def api_get_asset(asset: GetAsset = Depends()):
     if magic_mime_type == "audio/flac" or magic_mime_type == "audio/x-wav":
         return FileResponse(asset_file, media_type=magic_mime_type)
     else:
-        raise HTTPException(status_code=404, detail="Audio Asset wrong file format")
+        raise HTTPException(status_code=400, detail="unsupported Audio Asset file format")
