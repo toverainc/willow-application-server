@@ -17,7 +17,7 @@ COPY . .
 
 COPY --from=was-ui /was-ui/out/ /app/static/admin/
 
-RUN pytest
+RUN PYTHONPATH=/app pytest -s
 
 EXPOSE 8501
 EXPOSE 8502

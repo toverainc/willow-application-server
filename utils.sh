@@ -134,7 +134,7 @@ shell|docker)
 
 test)
     dep_check
-    docker run --rm -it --volume="${WAS_DIR}:/app" "$IMAGE":"$TAG" pytest
+    docker run --rm -it --env PYTHONPATH=/app --volume="${WAS_DIR}:/app" "$IMAGE":"$TAG" pytest
 ;;
 
 torture)
