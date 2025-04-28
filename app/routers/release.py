@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from requests import get
 
 from ..const import DIR_OTA
-from ..internal.was import get_release_url, get_releases_willow, get_was_url, is_safe_path
+from ..internal.was import get_release_url, get_releases_willow, get_safe_path, get_was_url
 
 
 log = getLogger("WAS")
@@ -61,6 +61,6 @@ async def api_post_release(request: Request, release: PostRelease = Depends()):
     if release.action == "delete":
         data = await request.json()
         path = data['path']
-        path = is_safe_path(DIR_OTA, path)
+        path = get_safe_path(DIR_OTA, path)
         if path:
             os.remove(path)

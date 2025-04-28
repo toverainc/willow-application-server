@@ -268,6 +268,20 @@ def get_releases_willow():
     return releases
 
 
+def get_safe_path(basedir, path, follow_symlinks=True):
+    path = os.path.normpath(path)
+    # resolves symbolic links
+    if follow_symlinks:
+        matchpath = os.path.realpath(path)
+    else:
+        matchpath = os.path.abspath(path)
+
+    if not matchpath.startswith(basedir):
+        raise HTTPException(status_code=400, detail=f"invalid asset path {path}")
+
+    return matchpath
+
+
 def get_tz_config(refresh=False):
     if refresh:
         tz = requests.get(URL_WILLOW_TZ).json()
@@ -288,20 +302,6 @@ def get_was_url():
         return nvs["WAS"]["URL"]
     except Exception:
         return False
-
-
-def is_safe_path(basedir, path, follow_symlinks=True):
-    path = os.path.normpath(path)
-    # resolves symbolic links
-    if follow_symlinks:
-        matchpath = os.path.realpath(path)
-    else:
-        matchpath = os.path.abspath(path)
-
-    if not matchpath.startswith(basedir):
-        raise HTTPException(status_code=400, detail=f"invalid asset path {path}")
-
-    return matchpath
 
 
 def merge_dict(dict_1, dict_2):
