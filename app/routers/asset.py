@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from ..const import DIR_ASSET
-from ..internal.was import get_mime_type, is_safe_path
+from ..internal.was import get_mime_type, get_safe_path
 
 
 log = getLogger("WAS")
@@ -27,7 +27,7 @@ class GetAsset(BaseModel):
 async def api_get_asset(asset: GetAsset = Depends()):
     log.debug("API GET ASSET: Request")
     asset_file = os.path.join(DIR_ASSET, asset.type, asset.asset)
-    asset_file = is_safe_path(DIR_ASSET, asset_file)
+    asset_file = get_safe_path(DIR_ASSET, asset_file)
     log.debug(f"asset file: {asset_file}")
 
     # If we don't have the asset file return 404

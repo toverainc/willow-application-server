@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from requests import get
 
 from ..const import DIR_OTA
-from ..internal.was import get_releases_willow, is_safe_path
+from ..internal.was import get_releases_willow, get_safe_path
 
 
 log = getLogger("WAS")
@@ -24,9 +24,9 @@ class GetOta(BaseModel):
 @router.get("/ota")
 async def api_get_ota(ota: GetOta = Depends()):
     log.debug('API GET OTA: Request')
-    ota_dir = is_safe_path(DIR_OTA, os.path.join(DIR_OTA, ota.version))
+    ota_dir = get_safe_path(DIR_OTA, os.path.join(DIR_OTA, ota.version))
     ota_file = os.path.join(ota_dir, f"{ota.platform}.bin")
-    ota_file = is_safe_path(ota_dir, ota_file)
+    ota_file = get_safe_path(ota_dir, ota_file)
     if not ota_file:
         return
     if not os.path.isfile(ota_file):
