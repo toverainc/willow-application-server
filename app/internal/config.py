@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class WillowAudioCodec(str, Enum):
@@ -105,8 +105,7 @@ class WillowConfig(BaseModel, validate_assignment=True):
     wis_url: str = None
 
     # use Enum strings instead of e.g. WillowAudioCodec.PCM
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class WillowNvsWas(BaseModel):
