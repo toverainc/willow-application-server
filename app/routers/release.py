@@ -39,7 +39,8 @@ async def api_get_release(release: GetRelease = Depends()):
                 for asset in assets:
                     platform = asset["platform"]
                     asset["was_url"] = get_release_url(was_url, tag_name, platform)
-                    if os.path.isfile(f"{DIR_OTA}/{tag_name}/{platform}.bin"):
+                    ota_path = os.path.join(DIR_OTA, tag_name, f"{platform}.bin")
+                    if os.path.isfile(ota_path):
                         asset["cached"] = True
                     else:
                         asset["cached"] = False
