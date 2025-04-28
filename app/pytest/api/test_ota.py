@@ -1,7 +1,6 @@
 import json
 import unittest
 
-from os import makedirs
 from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
@@ -10,9 +9,6 @@ from fastapi.testclient import TestClient
 class TestOta(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestOta, self).__init__(*args, **kwargs)
-
-        # make sure the static/admin dir exists so we can run tests without having to copy the UI
-        makedirs("/app/static/admin", exist_ok=True)
 
         from app.main import app
         self.client = TestClient(app)
