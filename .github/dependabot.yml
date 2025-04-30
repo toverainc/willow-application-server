@@ -3,5 +3,10 @@ version: 2
 updates:
   - package-ecosystem: "pip"
     directory: "/"
+    groups:
+      pydantic-and-core:
+        patterns:
+          - "pydantic"
+          - "pydantic-core"
     schedule:
       interval: "weekly"
