@@ -23,7 +23,7 @@ pydantic-extra-types==2.10.4
 pydantic-settings==2.0.3
 pydantic_core==2.33.0
 pytest==8.3.4
-python-dotenv==1.0.0
+python-dotenv==1.1.0
 python-magic==0.4.27
 python-multipart==0.0.18
 PyYAML==6.0.1
