@@ -112,10 +112,10 @@ async def lifespan(app: FastAPI):
             log.error(f"failed to migrate user client config to database: {e}")
     app.connmgr = ConnMgr()
 
+    app.command_endpoint = None
     try:
         init_command_endpoint(app)
     except Exception as e:
-        app.command_endpoint = None
         log.error(f"failed to initialize command endpoint ({e})")
 
     app.notify_queue = NotifyQueue(connmgr=app.connmgr)
