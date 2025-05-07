@@ -2,7 +2,7 @@ ARG WAS_UI_TAG="main"
 
 FROM ghcr.io/heywillow/willow-application-server-ui:${WAS_UI_TAG} AS was-ui
 
-FROM alpine:3.21
+FROM alpine:3.21 AS build
 
 WORKDIR /app
 
@@ -22,6 +22,17 @@ COPY --from=was-ui /was-ui/out/ /app/static/admin/
 ENV PATH="$PATH:/opt/venv/bin"
 
 RUN PYTHONPATH=/app pytest -s
+
+FROM alpine:3.21
+
+ENV PATH="$PATH:/opt/venv/bin"
+
+WORKDIR /app
+
+RUN --mount=type=cache,target=/var/cache/apk apk add --cache-dir /var/cache/apk libmagic libpq python3
+
+COPY --from=build /app /app
+COPY --from=build /opt/venv /opt/venv
 
 EXPOSE 8501
 EXPOSE 8502
