@@ -7,7 +7,7 @@ FROM python:3.12.9-alpine3.21
 
 WORKDIR /app
 
-RUN apk add --no-cache alpine-sdk libpq-dev
+RUN --mount=type=cache,target=/var/cache/apk apk add --cache-dir /var/cache/apk alpine-sdk libpq-dev
 
 COPY requirements.txt .
 
