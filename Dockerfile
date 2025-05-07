@@ -2,20 +2,24 @@ ARG WAS_UI_TAG="main"
 
 FROM ghcr.io/heywillow/willow-application-server-ui:${WAS_UI_TAG} AS was-ui
 
-FROM python:3.12.9-alpine3.21
-
+FROM alpine:3.21
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/var/cache/apk apk add --cache-dir /var/cache/apk alpine-sdk libpq-dev
+RUN --mount=type=cache,target=/var/cache/apk apk add --cache-dir /var/cache/apk alpine-sdk libpq-dev python3-dev uv
 
 COPY requirements.txt .
 
-RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
+ENV VIRTUAL_ENV=/opt/venv
+
+RUN uv venv /opt/venv
+RUN --mount=type=cache,target=/root/.cache uv pip install -r requirements.txt
 
 COPY . .
 
 COPY --from=was-ui /was-ui/out/ /app/static/admin/
+
+ENV PATH="$PATH:/opt/venv/bin"
 
 RUN PYTHONPATH=/app pytest -s
 
