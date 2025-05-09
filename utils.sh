@@ -46,7 +46,13 @@ WEB_UI_DIR="willow-application-server-ui"
 WEB_UI_URL="https://github.com/HeyWillow/willow-application-server-ui.git"
 
 # Reachable WAS IP for the "default" interface
-WAS_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
+if command -v ip &> /dev/null; then
+    # Linux 
+    WAS_IP=$(ip route get 1.1.1.1 | grep -o 'src [0-9.]*' | cut -d' ' -f2)
+else
+    # macOS 
+    WAS_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -n 1)
+fi
 
 # Get WAS version
 export WAS_VERSION=$(git describe --always --dirty --tags)
