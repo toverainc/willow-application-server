@@ -1,10 +1,8 @@
 from logging import getLogger
 
 from app.db.main import get_config_db
-from app.internal.command_endpoints.ha_rest import HomeAssistantRestEndpoint
 from app.internal.command_endpoints.ha_ws import (
     HomeAssistantWebSocketEndpoint,
-    HomeAssistantWebSocketEndpointNotSupportedException
 )
 from app.internal.command_endpoints.mqtt import MqttConfig, MqttEndpoint
 from app.internal.command_endpoints.openhab import OpenhabEndpoint
@@ -33,10 +31,7 @@ def init_command_endpoint(app):
             tls = user_config["hass_tls"]
             token = user_config["hass_token"]
 
-            try:
-                app.command_endpoint = HomeAssistantWebSocketEndpoint(app, host, port, tls, token)
-            except HomeAssistantWebSocketEndpointNotSupportedException:
-                app.command_endpoint = HomeAssistantRestEndpoint(host, port, tls, token)
+            app.command_endpoint = HomeAssistantWebSocketEndpoint(app, host, port, tls, token)
 
         elif user_config["command_endpoint"] == "MQTT":
             mqtt_config = MqttConfig()
