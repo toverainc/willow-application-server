@@ -4,6 +4,7 @@ services:
     image: ${IMAGE}:${TAG}
     environment:
       - LOG_LEVEL
+      - TZ=${TZ}
       - WAS_IP
       - WAS_LOG_LEVEL
     #build:
