@@ -11,10 +11,6 @@ from . import (
 )
 
 
-class HomeAssistantWebSocketEndpointNotSupportedException(CommandEndpointRuntimeException):
-    pass
-
-
 class HomeAssistantWebSocketEndpoint(CommandEndpoint):
     name = "WAS Home Assistant WebSocket Endpoint"
 
@@ -33,23 +29,8 @@ class HomeAssistantWebSocketEndpoint(CommandEndpoint):
         self.ha_willow_devices_request_id = None
         self.haws = None
 
-        if not self.is_supported():
-            raise HomeAssistantWebSocketEndpointNotSupportedException
-
         loop = asyncio.get_event_loop()
         self.task = loop.create_task(self.connect())
-
-    def is_supported(self):
-        headers = {}
-        headers['Content-Type'] = 'application/json'
-        headers['Authorization'] = f"Bearer {self.token}"
-        ha_components_url = f"{self.construct_url(False)}/api/components"
-        response = requests.get(ha_components_url, headers=headers)
-
-        if "assist_pipeline" in response.json():
-            return True
-
-        return False
 
     def construct_url(self, ws):
         ha_url_scheme = ""
